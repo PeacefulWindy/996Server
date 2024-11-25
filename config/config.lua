@@ -1,0 +1,16 @@
+Config=
+{
+    thread=5,
+    start="test.lua",
+    luaPath="lualib/?.lua",
+    servicePath=
+    {
+        "services",
+    },
+    args=
+    {
+        "A",
+        "B",
+        "C",
+    }
+}

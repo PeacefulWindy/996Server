@@ -1,0 +1,13 @@
+{
+    "name": "996server",
+    "version-semver": "1.0.0",
+    "dependencies": [
+      "lua",
+      "cjson",
+      "fmt",
+      "spdlog",
+      "libmariadb",
+      "cryptopp",
+      "protobuf"
+    ]
+  }
