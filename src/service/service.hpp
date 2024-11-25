@@ -18,6 +18,6 @@ public:
 private:
 	std::string mName;
 	int32_t mId;
-	lua_State* L;
+	lua_State* mState;
 	bool mIsInit = false;
 };

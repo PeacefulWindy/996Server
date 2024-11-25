@@ -5,13 +5,22 @@ int newService(lua_State * L)
 {
 	auto name = luaL_checkstring(L, 1);
 	auto src = luaL_checkstring(L, 2);
-	auto isUnique = static_cast<bool>(lua_tointeger(L, 3));
+	auto isUnique = lua_toboolean(L, 3);
 
 	auto serviceMgr = ServiceMgr::getInst();
 	auto id=serviceMgr->newService(name,src, isUnique);
 
 	lua_pushinteger(L,id);
 	return 1;
+}
+
+int queryService(lua_State* L)
+{
+	auto name = luaL_checkstring(L, 1);
+	auto serviceMgr = ServiceMgr::getInst();
+	serviceMgr->queryService(name);
+
+	return 0;
 }
 
 int destroyService(lua_State* L)
@@ -38,6 +47,12 @@ void luaRegisterServiceAPI(lua_State* state)
 
 	lua_pushcfunction(state, newService);
 	lua_setfield(state, -2, "newService");
+
+	lua_pushcfunction(state, queryService);
+	lua_setfield(state, -2, "queryService");
+
+	lua_pushcfunction(state, destroyService);
+	lua_setfield(state, -2, "destroyService");
 
 	if (!hasTable)
 	{

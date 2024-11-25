@@ -3,10 +3,8 @@
 
 int debug(lua_State* state)
 {
-#ifdef _DEBUG
 	auto data = lua_tostring(state, 1);
 	spdlog::debug("{}", data);
-#endif
 
 	return 0;
 }
@@ -37,6 +35,12 @@ void luaRegisterLogAPI(lua_State* state)
 	lua_settop(state, 0);
 
 	lua_newtable(state);
+
+#ifdef _DEBUG
+	spdlog::set_level(spdlog::level::debug);
+#else
+	spdlog::set_level(spdlog::level::info);
+#endif
 
 	lua_pushcfunction(state, debug);
 	lua_setfield(state, -2, "debug");

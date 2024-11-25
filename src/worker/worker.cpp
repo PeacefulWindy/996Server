@@ -1,6 +1,7 @@
 #include "worker.hpp"
 #include<spdlog/spdlog.h>
 #include<service/service.hpp>
+#include <service/serviceMgr.hpp>
 
 Worker::Worker(int32_t id)
 	:mId(id)
@@ -36,16 +37,31 @@ void Worker::run()
 	while (this->mIsRun)
 	{
 		auto service = this->mService;
+		auto serviceMgr=ServiceMgr::getInst();
+		auto serviceId = 0;
 		if (!service)
 		{
+			serviceId = serviceMgr->getFreeServiceId();
+			if (serviceId == 0)
+			{
+				std::this_thread::sleep_for(std::chrono::milliseconds(10));
+				continue;
+			}
 
-		}
+			service = serviceMgr->getService(serviceId);
 
-		if (!service)
-		{
-			continue;
+			if (!service)
+			{
+				std::this_thread::sleep_for(std::chrono::milliseconds(10));
+				continue;
+			}
 		}
 
 		service->poll();
+
+		if (serviceId > 0)
+		{
+			serviceMgr->pushFreeServiceId(serviceId);
+		}
 	}
 }

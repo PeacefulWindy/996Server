@@ -60,6 +60,10 @@ int32_t ServiceMgr::newService(std::string name,std::string src,bool isUnique)
 	{
 		worker->setService(service);
 	}
+	else
+	{
+		this->mFreeServices.push(id);
+	}
 
 	return id;
 }
@@ -143,11 +147,44 @@ void ServiceMgr::addServicePath(std::string value)
 	this->mServicePaths.emplace_back(value);
 }
 
+int32_t ServiceMgr::getFreeServiceId()
+{
+	while (!this->mFreeServiceLock.try_lock())
+	{
+		std::this_thread::sleep_for(std::chrono::milliseconds(10));
+	}
+
+	if (this->mFreeServices.size() == 0)
+	{
+		this->mFreeServiceLock.unlock();
+		return 0;
+	}
+
+	auto id = this->mFreeServices.front();
+	this->mFreeServices.pop();
+
+	this->mFreeServiceLock.unlock();
+
+	return id;
+}
+
+void ServiceMgr::pushFreeServiceId(int32_t value)
+{
+	while (!this->mFreeServiceLock.try_lock())
+	{
+		std::this_thread::sleep_for(std::chrono::milliseconds(10));
+	}
+
+	this->mFreeServices.push(value);
+
+	this->mFreeServiceLock.unlock();
+}
+
 ServiceMgr::~ServiceMgr()
 {
 	while (!this->mServiceLock.try_lock())
 	{
-		std::this_thread::sleep_for(std::chrono::milliseconds(100));
+		std::this_thread::sleep_for(std::chrono::milliseconds(10));
 	}
 
 	auto workerMgr = WorkerMgr::getInst();

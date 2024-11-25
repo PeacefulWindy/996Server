@@ -3,6 +3,7 @@
 #include<map>
 #include<mutex>
 #include<vector>
+#include <queue>
 
 class Service;
 
@@ -22,6 +23,10 @@ public:
 	std::vector<std::string>& getServicePath();
 	void addServicePath(std::string value);
 
+public:
+	int32_t getFreeServiceId();
+	void pushFreeServiceId(int32_t value);
+
 private:
 	virtual ~ServiceMgr();
 
@@ -31,4 +36,6 @@ private:
 	int32_t mAutoId = 1;
 	std::vector<std::string> mServicePaths;
 	std::mutex mServiceLock;
+	std::queue<int32_t> mFreeServices;
+	std::mutex mFreeServiceLock;
 };

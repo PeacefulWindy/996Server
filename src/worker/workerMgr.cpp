@@ -46,7 +46,7 @@ size_t WorkerMgr::useWorker()
 {
 	while (!this->mWorkerLock.try_lock())
 	{
-		std::this_thread::sleep_for(std::chrono::milliseconds(100));
+		std::this_thread::sleep_for(std::chrono::milliseconds(10));
 	}
 
 	auto iter = this->mFreeWorkers.begin();
@@ -65,7 +65,7 @@ void WorkerMgr::freeWorker(size_t id)
 
 	while (!this->mWorkerLock.try_lock())
 	{
-		std::this_thread::sleep_for(std::chrono::milliseconds(100));
+		std::this_thread::sleep_for(std::chrono::milliseconds(10));
 	}
 
 	this->mFreeWorkers.insert({ id,true });

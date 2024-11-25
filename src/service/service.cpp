@@ -7,7 +7,7 @@
 Service::Service(int32_t id, std::string name, std::string src)
 	:mId(id),mName(name)
 {
-	L = luaNewState();
+	this->mState = luaNewState();
 
 	auto& basePaths = ServiceMgr::getInst()->getServicePath();
 	auto filePath = std::string();
@@ -28,9 +28,9 @@ Service::Service(int32_t id, std::string name, std::string src)
 		return;
 	}
 
-	if (luaL_dofile(L, filePath.c_str()) != LUA_OK)
+	if (luaL_dofile(this->mState, filePath.c_str()) != LUA_OK)
 	{
-		spdlog::error("not found service file:{}", filePath.c_str());
+		spdlog::error("{}", lua_tostring(this->mState,-1));
 		luaExit();
 		return;
 	}
@@ -44,10 +44,11 @@ Service::~Service()
 {
 	if (this->mIsInit)
 	{
-		lua_getglobal(L, "api");
+		lua_settop(this->mState, 0);
+		lua_getglobal(this->mState, "api");
 	}
 	
-	lua_close(L);
+	lua_close(this->mState);
 
 	spdlog::info("service [{}]:{} stop.", this->mId, this->mName);
 }
@@ -64,6 +65,20 @@ int32_t Service::getId() const
 
 void Service::poll()
 {
+	if (!this->mIsInit)
+	{
+		return;
+	}
 
+	lua_settop(this->mState, 0);
+	lua_getglobal(this->mState,"onPoll");
+
+	if (lua_isfunction(this->mState, -1))
+	{
+		if (lua_pcall(this->mState, 0, 0, -1) != LUA_OK)
+		{
+			spdlog::error("{}", lua_tostring(this->mState, -1));
+		}
+	}
 }
 

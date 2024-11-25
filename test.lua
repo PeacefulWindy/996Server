@@ -4,7 +4,7 @@ api.newService(
     {
         name="testService",
         src="testService.lua",
-        unique=true,
+        unique=false,
     }
 )
 
