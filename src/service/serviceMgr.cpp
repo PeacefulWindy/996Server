@@ -1,6 +1,5 @@
 #include "serviceMgr.hpp"
 #include<worker/workerMgr.hpp>
-#include<service/service.hpp>
 #include<spdlog/spdlog.h>
 #include<worker/worker.hpp>
 
@@ -145,6 +144,17 @@ std::vector<std::string>& ServiceMgr::getServicePath()
 void ServiceMgr::addServicePath(std::string value)
 {
 	this->mServicePaths.emplace_back(value);
+}
+
+void ServiceMgr::send(int32_t serviceId, std::shared_ptr<ServiceMsg> msg)
+{
+	auto service = this->getService(serviceId);
+	if (!service)
+	{
+		return;
+	}
+
+	service->pushMsg(msg);
 }
 
 int32_t ServiceMgr::getFreeServiceId()

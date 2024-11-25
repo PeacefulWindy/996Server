@@ -28,6 +28,15 @@ Service::Service(int32_t id, std::string name, std::string src)
 		return;
 	}
 
+	lua_pushinteger(this->mState, this->mId);
+	lua_setglobal(this->mState, "SERVICE_ID");
+
+	lua_pushstring(this->mState, this->mName.c_str());
+	lua_setglobal(this->mState, "SERVICE_NAME");
+
+	lua_pushlightuserdata(this->mState, this);
+	lua_setglobal(this->mState, "SERVICE_PTR");
+
 	if (luaL_dofile(this->mState, filePath.c_str()) != LUA_OK)
 	{
 		spdlog::error("{}", lua_tostring(this->mState,-1));
@@ -41,21 +50,56 @@ Service::Service(int32_t id, std::string name, std::string src)
 }
 
 Service::~Service()
-{
-	if (this->mIsInit)
-	{
-		lua_settop(this->mState, 0);
-		lua_getglobal(this->mState, "api");
-	}
-	
+{	
 	lua_close(this->mState);
 
 	spdlog::info("service [{}]:{} stop.", this->mId, this->mName);
 }
 
+void Service::close()
+{
+	if (!this->mIsInit)
+	{
+		return;
+	}
+
+	this->mIsInit = false;
+}
+
 const std::string Service::getName() const
 {
 	return this->mName;
+}
+
+std::vector<std::shared_ptr<ServiceMsg>> Service::popAllMsg()
+{
+	while (!this->mMsgLock.try_lock())
+	{
+		std::this_thread::sleep_for(std::chrono::milliseconds(10));
+	}
+
+	auto datas = std::vector<std::shared_ptr<ServiceMsg>>();
+	while (!this->mMsgs.empty())
+	{
+		datas.emplace_back(this->mMsgs.front());
+		this->mMsgs.pop();
+	}
+
+	this->mMsgLock.unlock();
+
+	return datas;
+}
+
+void Service::pushMsg(std::shared_ptr<ServiceMsg> msg)
+{
+	while (!this->mMsgLock.try_lock())
+	{
+		std::this_thread::sleep_for(std::chrono::milliseconds(10));
+	}
+
+	this->mMsgs.push(msg);
+
+	this->mMsgLock.unlock();
 }
 
 int32_t Service::getId() const

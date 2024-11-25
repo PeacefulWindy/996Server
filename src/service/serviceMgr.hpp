@@ -4,8 +4,7 @@
 #include<mutex>
 #include<vector>
 #include <queue>
-
-class Service;
+#include<service/service.hpp>
 
 class ServiceMgr
 {
@@ -22,6 +21,9 @@ public:
 public:
 	std::vector<std::string>& getServicePath();
 	void addServicePath(std::string value);
+
+public:
+	void send(int32_t serviceId, std::shared_ptr<ServiceMsg> msg);
 
 public:
 	int32_t getFreeServiceId();
