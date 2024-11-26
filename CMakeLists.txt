@@ -30,6 +30,7 @@ aux_source_directory(src/socket srcs)
 aux_source_directory(src/worker srcs)
 aux_source_directory(src/service srcs)
 aux_source_directory(src/http/server srcs)
+aux_source_directory(src/http/client srcs)
 
 find_package(lua REQUIRED)
 find_package(cryptopp CONFIG REQUIRED)

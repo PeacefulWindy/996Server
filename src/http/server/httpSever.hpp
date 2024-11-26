@@ -3,7 +3,7 @@
 #include<ixwebsocket/IXHttpServer.h>
 #include<functional>
 
-struct HttpRequest
+struct HttpServerRequest
 {
 	std::string method;
 	std::string version;
@@ -11,7 +11,7 @@ struct HttpRequest
 	std::map<std::string, std::string> headers;
 };
 
-struct HttpResponse
+struct HttpServerResponse
 {
 	int32_t status = 200;
 	std::string msg;
@@ -24,12 +24,11 @@ public:
 	virtual ~HttpServer();
 
 public:
-	void setPort(int32_t value);
 	bool listen(int32_t port);
 
 public:
-	void on(std::string url, std::function<std::shared_ptr<HttpResponse>(std::shared_ptr<HttpRequest>)> func);
-	void setOnMsgFunc(std::function < std::shared_ptr<HttpResponse>(std::shared_ptr<HttpRequest>)> func);
+	void on(std::string url, std::function<std::shared_ptr<HttpServerResponse>(std::shared_ptr<HttpServerRequest>)> func);
+	void setOnMsgFunc(std::function < std::shared_ptr<HttpServerResponse>(std::shared_ptr<HttpServerRequest>)> func);
 
 public:
 	void close();
@@ -38,7 +37,7 @@ private:
 	ix::HttpResponsePtr onMsg(ix::HttpRequestPtr request, std::shared_ptr<ix::ConnectionState> connectionState);
 
 private:
-	std::map<std::string, std::function<std::shared_ptr<HttpResponse>(std::shared_ptr<HttpRequest>)>> mRouters;
-	std::function<std::shared_ptr<HttpResponse>(std::shared_ptr<HttpRequest>)> mOnMsgFunc;
+	std::map<std::string, std::function<std::shared_ptr<HttpServerResponse>(std::shared_ptr<HttpServerRequest>)>> mRouters;
+	std::function<std::shared_ptr<HttpServerResponse>(std::shared_ptr<HttpServerRequest>)> mOnMsgFunc;
 	ix::HttpServer* mServer=nullptr;
 };

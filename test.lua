@@ -1,12 +1,13 @@
--- local api=require "api"
+local api=require "api"
+local http=require "http"
 
--- api.newService(
---     {
---         name="testService",
---         src="testService.lua",
---         unique=false,
---     }
--- )
+api.newService(
+    {
+        name="testService",
+        src="testService.lua",
+        unique=false,
+    }
+)
 
 -- api.newService(
 --     {
@@ -16,13 +17,12 @@
 --     }
 -- )
 
-local id=httpServer.new(function(request)
-    local response=
-    {
-        status=200,
-        msg="Hello World!"
-    }
+-- local id=httpServer.new(function(request)
 
-    return response
-end)
-httpServer.listen(id,8080)
+-- end)
+-- httpServer.listen(id,8080)
+
+-- print(httpClient.get("http://192.168.1.1",{},function(response)
+--     api.dumpTable(response)
+-- end))
+

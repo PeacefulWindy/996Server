@@ -35,12 +35,12 @@ bool HttpServer::listen(int32_t port)
 	return true;
 }
 
-void HttpServer::on(std::string url, std::function<std::shared_ptr<HttpResponse>(std::shared_ptr<HttpRequest>)> func)
+void HttpServer::on(std::string url, std::function<std::shared_ptr<HttpServerResponse>(std::shared_ptr<HttpServerRequest>)> func)
 {
 	this->mRouters[url] = func;
 }
 
-void HttpServer::setOnMsgFunc(std::function<std::shared_ptr<HttpResponse>(std::shared_ptr<HttpRequest>)> func)
+void HttpServer::setOnMsgFunc(std::function<std::shared_ptr<HttpServerResponse>(std::shared_ptr<HttpServerRequest>)> func)
 {
 	this->mOnMsgFunc = func;
 }
@@ -57,7 +57,7 @@ void HttpServer::close()
 
 ix::HttpResponsePtr HttpServer::onMsg(ix::HttpRequestPtr request, std::shared_ptr<ix::ConnectionState> connectionState)
 {
-	auto httpRequest = std::make_shared<HttpRequest>();
+	auto httpRequest = std::make_shared<HttpServerRequest>();
 	httpRequest->method = request->method;
 	httpRequest->version = request->version;
 	httpRequest->body = request->body;

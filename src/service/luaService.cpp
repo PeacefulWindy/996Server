@@ -43,7 +43,7 @@ int sendService(lua_State* L)
 	lua_getglobal(L, "SERVICE_ID");
 	auto serviceId = luaL_checkinteger(L, -1);
 
-	if (msgType <= ServiceMsgType::None)
+	if (msgType <= 0)
 	{
 		return 0;
 	}
@@ -83,6 +83,22 @@ int getServiceAllMsg(lua_State* L)
 
 		lua_pushinteger(L, it->source);
 		lua_setfield(L, -2, "source");
+
+		if (it->msgType == static_cast<uint32_t>(ServiceMsgType::HttpResponse))
+		{
+			lua_newtable(L);
+
+			lua_pushstring(L, it->httpResponse.body.c_str());
+			lua_setfield(L, -2, "body");
+
+			lua_pushstring(L, it->httpResponse.error.c_str());
+			lua_setfield(L, -2, "error");
+
+			lua_pushinteger(L, it->httpResponse.status);
+			lua_setfield(L, -2, "status");
+
+			lua_setfield(L, -2, "httpResponse");
+		}
 
 		lua_rawseti(L, -2, static_cast<lua_Integer>(i) + 1);
 	}

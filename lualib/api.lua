@@ -1,18 +1,20 @@
-local api={}
-local _P=
+local api=
 {
+    MsgType=
+    {
+        Lua=1,
+        LuaResponse=2,
+        HttpResponse=3,
+    },
+    httpCoro={},
     nextCoro={},
     callCoro={},
     protocolRegister={},
     autoSessionId=1,
-    callTimeout=1,
+    callTimeout=20,
 }
 
-api.MsgType=
-{
-    Lua=1,
-    LuaResponse=2,
-}
+local _P={}
 
 function _P.formatLogArgs(...)
     local tb={...}
@@ -25,24 +27,24 @@ end
 
 function api.debug(...)
     local tb=_P.formatLogArgs(...)
-    log.debug(string.format("[%s]:%s",SERVICE_NAME,table.concat(tb,"\t")))
+    log.debug(string.format("[%s]:%s",SERVICE_NAME or "main",table.concat(tb,"\t")))
 end
 api.print=print
 print=api.debug
 
 function api.info(...)
     local tb=_P.formatLogArgs(...)
-    log.info(string.format("[%s]:%s",SERVICE_NAME,table.concat(tb,"\t")))
+    log.info(string.format("[%s]:%s",SERVICE_NAME or "main",table.concat(tb,"\t")))
 end
 
 function api.warn(...)
     local tb=_P.formatLogArgs(...)
-    log.warning(string.format("[%s]:%s",SERVICE_NAME,table.concat(tb,"\t")))
+    log.warning(string.format("[%s]:%s",SERVICE_NAME or "main",table.concat(tb,"\t")))
 end
 
 function api.error(...)
     local tb=_P.formatLogArgs(...)
-    log.error(string.format("[%s]:%s",SERVICE_NAME,table.concat(tb,"\t")))
+    log.error(string.format("[%s]:%s",SERVICE_NAME or "main",table.concat(tb,"\t")))
 end
 
 function api.copyTable(tb)
@@ -59,37 +61,39 @@ function api.copyTable(tb)
     return ret
 end
 
-function api.dump(tb)
-    function _M.dumpTable(tb,name,layer)
-        if not name then
-            name=""
+function api.dumpTable(tb,name,layer)
+    if not tb then
+        return
+    end
+
+    if not name then
+        name=""
+    end
+
+    if not layer then
+        layer=0
+    end
+
+    if layer == 0 then
+        print("==========",name," Start==========")
+    end
+
+    for k,v in pairs(tb)do
+        local spaceTb={}
+        for i=1,layer do
+            table.insert(spaceTb,"\t")
         end
-    
-        if not layer then
-            layer=0
+
+        if type(v) == "table" then
+            print(name..table.concat(spaceTb," ").."["..type(k).."]"..k.." => ")
+            api.dumpTable(v,name,layer+1)
+        else
+            print(name..table.concat(spaceTb," ").."["..type(k).."]"..k.." = ["..type(v).."]"..tostring(v))
         end
-    
-        if layer == 0 then
-            print("==========",name," Start==========")
-        end
-    
-        for k,v in pairs(tb)do
-            local spaceTb={}
-            for i=1,layer do
-                table.insert(spaceTb,"\t")
-            end
-    
-            if type(v) == "table" then
-                print(name..table.concat(spaceTb," ").."["..type(k).."]"..k.." => ")
-                _M.dumpTable(v,name,layer+1)
-            else
-                print(name..table.concat(spaceTb," ").."["..type(k).."]"..k.." = ["..type(v).."]"..tostring(v))
-            end
-        end
-    
-        if layer == 0 then
-            print("==========",name," End==========")
-        end
+    end
+
+    if layer == 0 then
+        print("==========",name," End==========")
     end
 end
 
@@ -130,11 +134,11 @@ end
 
 function api.async(func)
     local co=coroutine.create(func)
-    table.insert(_P.nextCoro,co)
+    table.insert(api.nextCoro,co)
 end
 
 function api.dispatch(type,func)
-    _P.protocolRegister[type]=func
+    api.protocolRegister[type]=func
 end
 
 function api.send(msgType,serviceId,...)
@@ -148,13 +152,13 @@ function api.response(serviceId,sessionId,...)
 end
 
 function api.call(msgType,serviceId,...)
-    local sessionId=_P.autoSessionId
-    _P.autoSessionId=_P.autoSessionId+1
+    local sessionId=api.autoSessionId
+    api.autoSessionId=api.autoSessionId+1
     local co=coroutine.running()
-    _P.callCoro[sessionId]=
+    api.callCoro[sessionId]=
     {
         co=co,
-        time=os.time()+_P.callTimeout,
+        time=os.time()+api.callTimeout,
     }
 
     local args={...}
@@ -173,9 +177,9 @@ function api.quit()
 end
 
 function onPoll()
-    for i=#_P.nextCoro,1,-1 do
-        local co=_P.nextCoro[i]
-        table.remove(_P.nextCoro,i)
+    for i=#api.nextCoro,1,-1 do
+        local co=api.nextCoro[i]
+        table.remove(api.nextCoro,i)
         local status,err=coroutine.resume(co)
         if not status then
             api.error(err)
@@ -184,21 +188,31 @@ function onPoll()
 
     local now=os.time()
     --处理消息
-    for k,v in pairs(_P.callCoro) do
+    for k,v in pairs(api.callCoro) do
         if now > v.time then
             local status,err=coroutine.resume(v.co,false)
             if not status then
                 api.error(err)
             end
-            _P.callCoro[k]=nil
+            api.callCoro[k]=nil
         end
     end
 
     local msgs=core.getAllMsg()
     for _,it in pairs(msgs)do
-        local func=_P.protocolRegister[it.msgType]
-        if func then
-            func(it.source,it.session,table.unpack(json.decode(it.args)))
+        if it.msgType == api.MsgType.HttpResponse then
+            local co=api.httpCoro[it.session]
+            if co then
+                local status,err=coroutine.resume(co,it.httpResponse)
+                if not status then
+                    api.error(err)
+                end
+            end
+        else
+            local func=_P.protocolRegister[it.msgType]
+            if func then
+                func(it.source,it.session,table.unpack(json.decode(it.args)))
+            end
         end
     end
 end

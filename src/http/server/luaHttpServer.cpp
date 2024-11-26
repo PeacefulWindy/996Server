@@ -17,9 +17,9 @@ int32_t newHttpServer(lua_State* L)
 	auto id = httpServerMgr->newServer();
 	auto httpServer = httpServerMgr->getServer(id);
 
-	httpServer->setOnMsgFunc([L,refFuncId](std::shared_ptr<HttpRequest> request)
+	httpServer->setOnMsgFunc([L,refFuncId](std::shared_ptr<HttpServerRequest> request)
 		{
-			auto response = std::make_shared<HttpResponse>();
+			auto response = std::make_shared<HttpServerResponse>();
 
 			lua_rawgeti(L, LUA_REGISTRYINDEX, refFuncId);
 			lua_newtable(L);
