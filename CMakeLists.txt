@@ -29,6 +29,7 @@ aux_source_directory(src/sql/mysql srcs)
 aux_source_directory(src/socket srcs)
 aux_source_directory(src/worker srcs)
 aux_source_directory(src/service srcs)
+aux_source_directory(src/http/server srcs)
 
 find_package(lua REQUIRED)
 find_package(cryptopp CONFIG REQUIRED)
@@ -36,6 +37,18 @@ find_package(cJSON CONFIG REQUIRED)
 find_package(unofficial-libmariadb CONFIG REQUIRED)
 find_package(protobuf CONFIG REQUIRED)
 find_package(fmt CONFIG REQUIRED)
+find_package(ixwebsocket CONFIG REQUIRED)
 
 add_executable(${PROJECT_NAME} ${srcs} ${LUA_INCLUDE_DIR})
-target_link_libraries(${PROJECT_NAME} PRIVATE fmt::fmt cryptopp::cryptopp lua cjson unofficial::libmariadb protobuf::libprotoc protobuf::libprotobuf protobuf::libprotobuf-lite)
+target_link_libraries(${PROJECT_NAME} PRIVATE 
+    fmt::fmt
+    cryptopp::cryptopp 
+    lua 
+    cjson 
+    unofficial::libmariadb 
+    protobuf::libprotoc 
+    protobuf::libprotobuf 
+    protobuf::libprotobuf-lite 
+    ixwebsocket::ixwebsocket
+    bcrypt
+)

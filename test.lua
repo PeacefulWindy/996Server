@@ -1,17 +1,28 @@
-local api=require "api"
+-- local api=require "api"
 
-api.newService(
-    {
-        name="testService",
-        src="testService.lua",
-        unique=false,
-    }
-)
+-- api.newService(
+--     {
+--         name="testService",
+--         src="testService.lua",
+--         unique=false,
+--     }
+-- )
 
-api.newService(
+-- api.newService(
+--     {
+--         name="testService2",
+--         src="testService2.lua",
+--         unique=true,
+--     }
+-- )
+
+local id=httpServer.new(function(request)
+    local response=
     {
-        name="testService2",
-        src="testService2.lua",
-        unique=true,
+        status=200,
+        msg="Hello World!"
     }
-)
+
+    return response
+end)
+httpServer.listen(id,8080)

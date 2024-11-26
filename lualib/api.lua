@@ -45,6 +45,54 @@ function api.error(...)
     log.error(string.format("[%s]:%s",SERVICE_NAME,table.concat(tb,"\t")))
 end
 
+function api.copyTable(tb)
+    local ret={}
+
+    for k,v in pairs(tb)do
+        if type(v) == "table" then
+            ret[k]=_M.copyTable(v)
+        else
+            ret[k]=v
+        end
+    end
+
+    return ret
+end
+
+function api.dump(tb)
+    function _M.dumpTable(tb,name,layer)
+        if not name then
+            name=""
+        end
+    
+        if not layer then
+            layer=0
+        end
+    
+        if layer == 0 then
+            print("==========",name," Start==========")
+        end
+    
+        for k,v in pairs(tb)do
+            local spaceTb={}
+            for i=1,layer do
+                table.insert(spaceTb,"\t")
+            end
+    
+            if type(v) == "table" then
+                print(name..table.concat(spaceTb," ").."["..type(k).."]"..k.." => ")
+                _M.dumpTable(v,name,layer+1)
+            else
+                print(name..table.concat(spaceTb," ").."["..type(k).."]"..k.." = ["..type(v).."]"..tostring(v))
+            end
+        end
+    
+        if layer == 0 then
+            print("==========",name," End==========")
+        end
+    end
+end
+
 function api.exit()
     core.exit()
 end

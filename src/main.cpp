@@ -4,6 +4,7 @@
 #include <worker/workerMgr.hpp>
 #include <stdlib.h>
 #include <service/serviceMgr.hpp>
+#include <ixwebsocket/IXNetSystem.h>
 
 struct ServerConfig
 {
@@ -98,6 +99,7 @@ bool readConfig(lua_State * L,ServerConfig &config)
 
 int main(int arg,char * argv[])
 {
+	ix::initNetSystem();
 	if (arg < 2)
 	{
 		printHelp();
@@ -178,6 +180,8 @@ int main(int arg,char * argv[])
 
 	ServiceMgr::destroy();
 	WorkerMgr::destroy();
+
+	ix::uninitNetSystem();
 
 	return 0;
 }

@@ -119,7 +119,7 @@ void Service::poll()
 
 	if (lua_isfunction(this->mState, -1))
 	{
-		if (lua_pcall(this->mState, 0, 0, -1) != LUA_OK)
+		if (lua_pcall(this->mState, 0, 0, 0) != LUA_OK)
 		{
 			spdlog::error("{}", lua_tostring(this->mState, -1));
 		}
