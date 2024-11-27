@@ -6,6 +6,7 @@
 #include <service/serviceMgr.hpp>
 #include <ixwebsocket/IXNetSystem.h>
 #include <service/msg/serviceMsgPool.hpp>
+#include<asio.hpp>
 
 struct ServerConfig
 {
@@ -98,6 +99,8 @@ bool readConfig(lua_State * L,ServerConfig &config)
 	return true;
 }
 
+asio::io_context IoContext;
+
 int main(int arg,char * argv[])
 {
 	ServiceMsgPool::newInst(10);
@@ -178,6 +181,7 @@ int main(int arg,char * argv[])
 
 	while (luaIsRun())
 	{
+		IoContext.poll();
 		serviceMgr->poll();
 		std::this_thread::sleep_for(std::chrono::milliseconds(10));
 	}

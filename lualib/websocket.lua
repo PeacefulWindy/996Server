@@ -15,7 +15,6 @@ function Server:ctor(...)
     self.onConnectFunc=nil
     self.onCloseFunc=nil
     self.onMsgFunc=nil
-    print(self.ptr,self)
     api.websocketServers[self.ptr]=self
 end
 
@@ -47,7 +46,7 @@ function Server:onMsg(fd,status,msg)
     end
 end
 
-function Server.destroy()
+function Server:destroy()
     api.websocketServers[self.ptr]=nil
     websocketServer.destroy(self.ptr)
 end

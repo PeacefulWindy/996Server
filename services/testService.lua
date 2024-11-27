@@ -1,9 +1,10 @@
 local api=require "api"
 local http=require "http"
 local websocket=require "websocket"
+local tcp=require "tcp"
 
 api.async(function()
-    local server=websocket.newServer()
+    local server=tcp.newServer()
     if not server:listen(6000) then
         return
     end

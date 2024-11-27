@@ -32,15 +32,23 @@ bool WebsocketServer::listen(uint16_t port, std::string host, int32_t maxConnect
 	return true;
 }
 
-void WebsocketServer::send(uint32_t fd, std::string data)
+void WebsocketServer::send(uint64_t fd, std::string data)
 {
+	while (!this->mLock.try_lock())
+	{
+		std::this_thread::sleep_for(std::chrono::milliseconds(10));
+	}
+
 	auto iter=this->mSessions.find(fd);
 	if (iter == this->mSessions.end())
 	{
+		this->mLock.unlock();
 		return;
 	}
 
 	iter->second->send(data, true);
+
+	this->mLock.unlock();
 }
 
 void WebsocketServer::close()
@@ -61,17 +69,17 @@ void WebsocketServer::close()
 	}
 }
 
-void WebsocketServer::setOnConnectFunc(std::function<void(uint32_t)> func)
+void WebsocketServer::setOnConnectFunc(std::function<void(uint64_t)> func)
 {
 	this->mOnConnetionFunc = func;
 }
 
-void WebsocketServer::setOnMsgFunc(std::function<void(uint32_t, const std::string& msg)> func)
+void WebsocketServer::setOnMsgFunc(std::function<void(uint64_t, const std::string& msg)> func)
 {
 	this->mOnMsgFunc = func;
 }
 
-void WebsocketServer::setOnCloseFunc(std::function<void(uint32_t)> func)
+void WebsocketServer::setOnCloseFunc(std::function<void(uint64_t)> func)
 {
 	this->mOnCloseFunc = func;
 }

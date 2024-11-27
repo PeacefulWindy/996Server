@@ -7,8 +7,11 @@ local api=
         LuaResponse=3,
         HttpClient=4,
         WebsocketServer=5,
+        WebsocketClient=6,
+        TcpServer=7,
     },
     websocketServers={},
+    tcpServers={},
     httpCoro={},
     nextCoro={},
     callCoro={},
@@ -220,6 +223,13 @@ function onPoll()
             end
         elseif it.msgType == api.MsgType.WebsocketServer then
             local inst=api.websocketServers[it.session]
+            if not inst then
+                return
+            end
+
+            inst:onMsg(it.fd,it.status,it.data)
+        elseif it.msgType == api.MsgType.TcpServer then
+            local inst=api.tcpServers[it.session]
             if not inst then
                 return
             end

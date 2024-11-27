@@ -7,6 +7,7 @@ set(CMAKE_CXX_STANDARD 23)
 
 if(MSVC)
     add_compile_options("/utf-8")
+    add_definitions(-D_WIN32_WINNT=0x0601)
 endif()
 
 if(CMAKE_BUILD_TYPE MATCHES "Debug")
@@ -33,6 +34,9 @@ aux_source_directory(src/service/msg srcs)
 aux_source_directory(src/http/server srcs)
 aux_source_directory(src/http/client srcs)
 aux_source_directory(src/websocket/server srcs)
+aux_source_directory(src/socket/tcp/server srcs)
+aux_source_directory(src/socket/tcp/client srcs)
+aux_source_directory(src/socket/tcp/session srcs)
 
 find_package(lua REQUIRED)
 find_package(cryptopp CONFIG REQUIRED)
@@ -41,6 +45,7 @@ find_package(unofficial-libmariadb CONFIG REQUIRED)
 find_package(protobuf CONFIG REQUIRED)
 find_package(fmt CONFIG REQUIRED)
 find_package(ixwebsocket CONFIG REQUIRED)
+find_package(asio CONFIG REQUIRED)
 
 add_executable(${PROJECT_NAME} ${srcs} ${LUA_INCLUDE_DIR})
 target_link_libraries(${PROJECT_NAME} PRIVATE 
@@ -54,4 +59,5 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     protobuf::libprotobuf-lite 
     ixwebsocket::ixwebsocket
     bcrypt
+    asio::asio
 )
