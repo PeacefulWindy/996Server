@@ -4,6 +4,7 @@
 #include<http/client/httpClientMgr.hpp>
 #include <service/service.hpp>
 #include <service/serviceMgr.hpp>
+#include<service/msg/serviceMsgPool.hpp>
 
 constexpr int32_t HttpConnectTimeOut = 10;
 constexpr int32_t HttpTransferTimeOut = 60;
@@ -65,12 +66,19 @@ int32_t httpGet(lua_State* L)
 
 	auto ret = client->performRequest(request, [sessionId, serviceId, clientId](const ix::HttpResponsePtr& response)
 		{
-			auto msg = std::make_shared<ServiceMsg>();
-			msg->msgType = static_cast<uint32_t>(ServiceMsgType::HttpResponse);
+			auto serviceMsgPool = ServiceMsgPool::getInst();
+			auto msg = serviceMsgPool->pop();
+			msg->msgType = static_cast<uint32_t>(ServiceMsgType::HttpClient);
 			msg->session = sessionId;
-			msg->httpResponse.status = response->statusCode;
-			msg->httpResponse.body = response->body;
-			msg->httpResponse.error = response->errorMsg;
+			msg->status = response->statusCode;
+			auto& body = response->body;
+			auto bodyLen = body.length();
+			if (msg->data.size() < bodyLen +1)
+			{
+				msg->data.resize(bodyLen + 1);
+			}
+			memcpy(msg->data.data(), body.c_str(), bodyLen);
+			msg->error = response->errorMsg;
 
 			ServiceMgr::getInst()->send(serviceId, msg);
 
@@ -134,12 +142,23 @@ int httpPost(lua_State* L)
 	
 	auto ret = client->performRequest(request, [sessionId, serviceId, clientId](const ix::HttpResponsePtr& response)
 		{
-			auto msg = std::make_shared<ServiceMsg>();
-			msg->msgType = static_cast<uint32_t>(ServiceMsgType::HttpResponse);
+			auto serviceMsgPool = ServiceMsgPool::getInst();
+			auto msg = serviceMsgPool->pop();
+			msg->msgType = static_cast<uint32_t>(ServiceMsgType::HttpClient);
 			msg->session = sessionId;
-			msg->httpResponse.status = response->statusCode;
-			msg->httpResponse.body = response->body;
-			msg->httpResponse.error = response->errorMsg;
+			msg->status = response->statusCode;
+			auto& body = response->body;
+			auto bodyLen = body.length();
+			if (bodyLen)
+			{
+				if (msg->data.size() < bodyLen + 1)
+				{
+					msg->data.resize(bodyLen + 1);
+				}
+				memcpy(msg->data.data(), body.c_str(), bodyLen);
+			}
+
+			msg->error = response->errorMsg;
 
 			ServiceMgr::getInst()->send(serviceId, msg);
 

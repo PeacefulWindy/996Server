@@ -5,6 +5,7 @@
 #include<vector>
 #include <queue>
 #include<service/service.hpp>
+#include <stack>
 
 class ServiceMgr
 {
@@ -26,6 +27,9 @@ public:
 	void send(int32_t serviceId, std::shared_ptr<ServiceMsg> msg);
 
 public:
+	void poll();
+
+public:
 	int32_t getFreeServiceId();
 	void pushFreeServiceId(int32_t value);
 
@@ -40,4 +44,6 @@ private:
 	std::mutex mServiceLock;
 	std::queue<int32_t> mFreeServices;
 	std::mutex mFreeServiceLock;
+	std::stack<Service*> mPreDestroyServices;
+	std::mutex mPreDestroyServiceLock;
 };

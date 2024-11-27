@@ -5,24 +5,7 @@
 #include<vector>
 #include<memory>
 #include<mutex>
-#include<http/client/httpClientMgr.hpp>
-
-enum class ServiceMsgType
-{
-	None = 0,
-	Lua = 1,
-	LuaResponse=2,
-	HttpResponse=3,
-};
-
-struct ServiceMsg
-{
-	uint32_t source = 0;
-	uint32_t session = 0;
-	uint32_t msgType = static_cast<uint32_t>(ServiceMsgType::None);
-	std::string args;
-	HttpClientResponse httpResponse;
-};
+#include<service/msg/serviceMsg.hpp>
 
 class Service
 {

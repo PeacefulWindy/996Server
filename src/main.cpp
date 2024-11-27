@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <service/serviceMgr.hpp>
 #include <ixwebsocket/IXNetSystem.h>
+#include <service/msg/serviceMsgPool.hpp>
 
 struct ServerConfig
 {
@@ -99,6 +100,8 @@ bool readConfig(lua_State * L,ServerConfig &config)
 
 int main(int arg,char * argv[])
 {
+	ServiceMsgPool::newInst(10);
+
 	ix::initNetSystem();
 	if (arg < 2)
 	{
@@ -175,6 +178,7 @@ int main(int arg,char * argv[])
 
 	while (luaIsRun())
 	{
+		serviceMgr->poll();
 		std::this_thread::sleep_for(std::chrono::milliseconds(10));
 	}
 

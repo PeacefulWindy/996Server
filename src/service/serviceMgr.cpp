@@ -116,24 +116,48 @@ void ServiceMgr::destoryService(int32_t id)
 		std::this_thread::sleep_for(std::chrono::milliseconds(100));
 	}
 
-	auto iter=this->mServices.find(id);
+	auto iter = this->mServices.find(id);
 	if (iter == this->mServices.end())
 	{
 		this->mServiceLock.unlock();
 		return;
 	}
 
+	auto service = iter->second;
 	auto workerMgr = WorkerMgr::getInst();
-	auto worker = workerMgr->getServiceWorker(iter->second);
+	auto worker = workerMgr->getServiceWorker(service);
 	if (worker)
 	{
 		worker->setService(nullptr);
 	}
 
-	delete iter->second;
 	this->mServices.erase(iter);
 
+	while (!this->mPreDestroyServiceLock.try_lock())
+	{
+		std::this_thread::sleep_for(std::chrono::milliseconds(100));
+	}
+	this->mPreDestroyServices.push(service);
+
 	this->mServiceLock.unlock();
+	this->mPreDestroyServiceLock.unlock();
+}
+
+void ServiceMgr::poll()
+{
+	while (!this->mPreDestroyServiceLock.try_lock())
+	{
+		std::this_thread::sleep_for(std::chrono::milliseconds(100));
+	}
+
+	while (!this->mPreDestroyServices.empty())
+	{
+		auto service = this->mPreDestroyServices.top();
+		delete service;
+		this->mPreDestroyServices.pop();
+	}
+
+	this->mPreDestroyServiceLock.unlock();
 }
 
 std::vector<std::string>& ServiceMgr::getServicePath()

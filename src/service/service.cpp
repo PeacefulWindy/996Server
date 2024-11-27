@@ -44,16 +44,16 @@ Service::Service(int32_t id, std::string name, std::string src)
 		return;
 	}
 
-	spdlog::info("service [{}]:{} start.", this->mId, this->mName);
+	spdlog::info("service_{}:{} start.", this->mId, this->mName);
 
 	this->mIsInit = true;
 }
 
 Service::~Service()
-{	
+{
 	lua_close(this->mState);
 
-	spdlog::info("service [{}]:{} stop.", this->mId, this->mName);
+	spdlog::info("service_{}:{} stop.", this->mId, this->mName);
 }
 
 void Service::close()

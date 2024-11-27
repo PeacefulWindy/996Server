@@ -14,6 +14,7 @@ extern void luaRegisterLogAPI(lua_State* state);
 extern void luaRegisterServiceAPI(lua_State* state);
 extern void luaRegisterHttpServerAPI(lua_State* state);
 extern void luaRegisterHttpClientAPI(lua_State* state);
+extern void luaRegisterWebsocketServerAPI(lua_State* state);
 
 int exit(lua_State* L)
 {
@@ -69,6 +70,7 @@ void luaRegisterAPI(lua_State* state)
 	luaRegisterMariadbAPI(state);
 	luaRegisterHttpServerAPI(state);
 	luaRegisterHttpClientAPI(state);
+	luaRegisterWebsocketServerAPI(state);
 }
 
 void luaSetCPath(std::string path)

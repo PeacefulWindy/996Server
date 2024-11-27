@@ -2,16 +2,20 @@ local api=
 {
     MsgType=
     {
-        Lua=1,
-        LuaResponse=2,
-        HttpResponse=3,
+        Close=1,
+        Lua=2,
+        LuaResponse=3,
+        HttpClient=4,
+        WebsocketServer=5,
     },
+    websocketServers={},
     httpCoro={},
     nextCoro={},
     callCoro={},
     protocolRegister={},
     autoSessionId=1,
     callTimeout=20,
+    closeFunc=nil
 }
 
 local _P={}
@@ -129,7 +133,7 @@ end
 
 ---@param id integer
 function api.destroyService(id)
-    core.destroyServices(id)
+    core.send(id,api.MsgType.Close,0,"",0)
 end
 
 function api.async(func)
@@ -143,12 +147,14 @@ end
 
 function api.send(msgType,serviceId,...)
     local args={...}
-    core.send(serviceId,msgType,0,json.encode(args))
+    local data=json.encode(args)
+    core.send(serviceId,msgType,0,data,#data)
 end
 
 function api.response(serviceId,sessionId,...)
     local args={...}
-    core.send(serviceId,api.MsgType.LuaResponse,sessionId,json.encode(args))
+    local data=json.encode(args)
+    core.send(serviceId,api.MsgType.LuaResponse,sessionId,data,#data)
 end
 
 function api.call(msgType,serviceId,...)
@@ -162,7 +168,8 @@ function api.call(msgType,serviceId,...)
     }
 
     local args={...}
-    core.send(serviceId,msgType,sessionId,json.encode(args))
+    local data=json.encode(args)
+    core.send(serviceId,msgType,sessionId,data,#data)
     local status,msg=coroutine.yield(sessionId)
     if not status then
         api.error("call failed!\n",debug.traceback())
@@ -199,26 +206,46 @@ function onPoll()
     end
 
     local msgs=core.getAllMsg()
+    local isExit=false
     for _,it in pairs(msgs)do
-        if it.msgType == api.MsgType.HttpResponse then
+        if it.msgType == api.MsgType.Close then
+            isExit=true
+        elseif it.msgType == api.MsgType.HttpClient then
             local co=api.httpCoro[it.session]
             if co then
-                local status,err=coroutine.resume(co,it.httpResponse)
+                local status,err=coroutine.resume(co,{data=it.data,status=it.status,error=it.error})
                 if not status then
                     api.error(err)
                 end
             end
+        elseif it.msgType == api.MsgType.WebsocketServer then
+            local inst=api.websocketServers[it.session]
+            if not inst then
+                return
+            end
+
+            inst:onMsg(it.fd,it.status,it.data)
         else
-            local func=_P.protocolRegister[it.msgType]
+            local func=api.protocolRegister[it.msgType]
             if func then
-                func(it.source,it.session,table.unpack(json.decode(it.args)))
+                func(it.source,it.session,table.unpack(json.decode(it.data)))
             end
         end
     end
+
+    if isExit then
+        api.async(function()
+            if api.closeFunc then
+                api.closeFunc()
+            end
+
+            core.destoryService(SERVICE_ID)
+        end)
+    end
 end
 
-function onDestroy()
-    
+function api.shutdown(func)
+    api.closeFunc=func
 end
 
 api.dispatch(api.MsgType.LuaResponse,function(_,session,...)
