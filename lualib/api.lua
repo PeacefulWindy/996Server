@@ -9,9 +9,11 @@ local api=
         WebsocketServer=5,
         WebsocketClient=6,
         TcpServer=7,
+        TcpClient=8,
     },
     websocketServers={},
     tcpServers={},
+    tcpClients={},
     httpCoro={},
     nextCoro={},
     callCoro={},
@@ -235,6 +237,13 @@ function onPoll()
             end
 
             inst:onMsg(it.fd,it.status,it.data)
+        elseif it.msgType == api.MsgType.TcpClient then
+            local inst=api.tcpClients[it.session]
+            if not inst then
+                return
+            end
+
+            inst:onMsg(it.status,it.data)
         else
             local func=api.protocolRegister[it.msgType]
             if func then

@@ -7,7 +7,7 @@ local TcpStatus=
 {
     Open=1,
     Close=2,
-    Msg=2,
+    Msg=3,
 }
 
 function Server:ctor(...)
@@ -34,6 +34,10 @@ function Server:onMsg(fd,status,msg)
         if self.onConnectFunc then
             self.onConnectFunc(self,fd)
         end
+    elseif status == TcpStatus.Close then
+        if self.onCloseFunc then
+            self.onCloseFunc(self,fd)
+        end
     elseif status == TcpStatus.Msg then
         if self.onMsgFunc then
             self.onMsgFunc(self,fd,msg)
@@ -46,8 +50,54 @@ function Server:destroy()
     tcpServer.destroy(self.ptr)
 end
 
+local Client=class("TcpClient")
+function Client:ctor()
+    self.ptr=tcpClient.new()
+    self.onConnectFunc=nil
+    self.onCloseFunc=nil
+    self.onMsgFunc=nil
+    api.tcpClients[self.ptr]=self
+end
+
+function Client:destroy()
+    api.tcpClients[self.ptr]=nil
+    tcpClient.destroy(self.ptr)
+end
+
+function Client:connect(host,port)
+    return tcpClient.connect(self.ptr,host,port)
+end
+
+function Client:send(data)
+    tcpClient.send(self.ptr,data,#data)
+end
+
+function Client:close(data)
+    tcpClient.close(self.ptr)
+end
+
+function Client:onMsg(status,msg)
+    if status == TcpStatus.Open then
+        if self.onConnectFunc then
+            self.onConnectFunc(self)
+        end
+    elseif status == TcpStatus.Close then
+        if self.onCloseFunc then
+            self.onCloseFunc(self)
+        end
+    elseif status == TcpStatus.Msg then
+        if self.onMsgFunc then
+            self.onMsgFunc(self,msg)
+        end
+    end
+end
+
 function _M.newServer()
     return Server.new()
+end
+
+function _M.newClient()
+    return Client.new()
 end
 
 return _M

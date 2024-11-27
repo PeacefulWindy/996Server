@@ -3,8 +3,8 @@
 #include<socket/tcp/server/tcpServerMgr.hpp>
 #include<socket/tcp/server/tcpServer.hpp>
 
-TcpSession::TcpSession(int32_t id, uint64_t fd, TcpSessionType type, asio::ip::tcp::socket socket)
-	:mId(id), mFd(fd), mType(type), mSocket(std::move(socket))
+TcpSession::TcpSession(int32_t id, uint64_t fd, asio::ip::tcp::socket socket)
+	:mId(id), mFd(fd), mSocket(std::move(socket))
 {
 	this->doRead();
 }
@@ -38,34 +38,20 @@ void TcpSession::onMsg(std::error_code ec, std::size_t length)
 		return;
 	}
 
-	if (this->mType == TcpSessionType::Server)
+	auto tcpServerMgr = TcpServerMgr::getInst();
+	auto tcpServer = tcpServerMgr->getServer(this->mId);
+	if (!tcpServer)
 	{
-		auto tcpServerMgr = TcpServerMgr::getInst();
-		auto tcpServer = tcpServerMgr->getServer(this->mId);
-		if (!tcpServer)
-		{
-			return;
-		}
-
-		tcpServer->onMsg(this->mFd, std::string(reinterpret_cast<const char*>(this->mData.data()), length));
+		return;
 	}
-	else
-	{
 
-	}
+	tcpServer->onMsg(this->mFd, std::string(reinterpret_cast<const char*>(this->mData.data()), length));
 
 	this->doRead();
 }
 
 void TcpSession::close()
 {
-	if (this->mType == TcpSessionType::Server)
-	{
-		auto tcpServerMgr = TcpServerMgr::getInst();
-		tcpServerMgr->close(this->mId, this->mFd);
-	}
-	else
-	{
-
-	}
+	auto tcpServerMgr = TcpServerMgr::getInst();
+	tcpServerMgr->close(this->mId, this->mFd);
 }

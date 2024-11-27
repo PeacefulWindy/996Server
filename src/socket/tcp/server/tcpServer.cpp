@@ -48,6 +48,11 @@ void TcpServer::close()
 
 void TcpServer::close(uint64_t fd)
 {
+	if (this->mOnCloseFunc)
+	{
+		this->mOnCloseFunc(fd);
+	}
+
 	while (!this->mLock.try_lock())
 	{
 		std::this_thread::sleep_for(std::chrono::milliseconds(10));
@@ -91,6 +96,11 @@ void TcpServer::setOnConnectFunc(std::function<void(uint64_t)> func)
 	this->mOnConnectFunc = func;
 }
 
+void TcpServer::setOnCloseFunc(std::function<void(uint64_t)> func)
+{
+	this->mOnCloseFunc = func;
+}
+
 void TcpServer::setOnMsgFunc(std::function<void(uint64_t, const std::string&)> func)
 {
 	this->mOnMsgFunc = func;
@@ -120,7 +130,7 @@ void TcpServer::onAcceptor(std::error_code ec, asio::ip::tcp::socket socket)
 	auto fd = this->mAutoId;
 	this->mAutoId++;
 
-	auto session = std::make_shared<TcpSession>(this->mId, fd, TcpSessionType::Server, std::move(socket));
+	auto session = std::make_shared<TcpSession>(this->mId, fd, std::move(socket));
 	this->mSessions.insert({ fd,session });
 
 	this->mLock.unlock();

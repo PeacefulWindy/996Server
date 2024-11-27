@@ -6,13 +6,6 @@
 
 constexpr const char* TcpServerDefaultHost = "127.0.0.1";
 
-enum class TcpMsgType
-{
-	Open = 1,
-	Close = 2, 
-	Msg = 3,
-};
-
 class TcpSession;
 
 class TcpServer
@@ -31,6 +24,7 @@ public:
 
 public:
 	void setOnConnectFunc(std::function<void(uint64_t)> func);
+	void setOnCloseFunc(std::function<void(uint64_t)> func);
 	void setOnMsgFunc(std::function<void(uint64_t, const std::string&)> func);
 
 public:
@@ -48,5 +42,6 @@ private:
 	std::mutex mLock;
 
 	std::function<void(uint64_t)> mOnConnectFunc;
+	std::function<void(uint64_t)> mOnCloseFunc;
 	std::function<void(uint64_t, const std::string&)> mOnMsgFunc;
 };

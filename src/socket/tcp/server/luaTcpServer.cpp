@@ -3,6 +3,7 @@
 #include <service/msg/serviceMsgPool.hpp>
 #include<socket/tcp/server/tcpServerMgr.hpp>
 #include<socket/tcp/server/tcpServer.hpp>
+#include<define.hpp>
 
 int32_t newTcpServer(lua_State* L)
 {
@@ -55,6 +56,16 @@ int32_t listenTcpServer(lua_State* L)
 				auto msg = ServiceMsgPool::getInst()->pop();
 				msg->msgType = static_cast<uint32_t>(ServiceMsgType::TcpServer);
 				msg->status = static_cast<uint32_t>(TcpMsgType::Open);
+				msg->session = id;
+				msg->fd = fd;
+				ServiceMgr::getInst()->send(serviceId, msg);
+			});
+
+		tcpServer->setOnCloseFunc([id, serviceId](uint32_t fd)
+			{
+				auto msg = ServiceMsgPool::getInst()->pop();
+				msg->msgType = static_cast<uint32_t>(ServiceMsgType::TcpServer);
+				msg->status = static_cast<uint32_t>(TcpMsgType::Close);
 				msg->session = id;
 				msg->fd = fd;
 				ServiceMgr::getInst()->send(serviceId, msg);

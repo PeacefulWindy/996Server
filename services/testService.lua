@@ -4,13 +4,24 @@ local websocket=require "websocket"
 local tcp=require "tcp"
 
 api.async(function()
-    local server=tcp.newServer()
-    if not server:listen(6000) then
+    local client=tcp.newClient()
+    client.onConnectFunc=function()
+        client:send("Hello World!")
+    end
+    client.onMsgFunc=function(_,data)
+        print("AAA",data)
+        client:close()
+    end
+    if not client:connect("127.0.0.1",8080) then
         return
     end
-    server.onConnectFunc=function(_,fd)
-        server:send(fd,"Hello!")
-    end
+    -- local server=tcp.newServer()
+    -- if not server:listen(6000) then
+    --     return
+    -- end
+    -- server.onConnectFunc=function(_,fd)
+    --     server:send(fd,"Hello!")
+    -- end
     -- api.destroyService(SERVICE_ID)
     -- local response=http.post("http://127.0.0.1:8080",{user="AAA",pwd="BBB"})
     -- api.dumpTable(response)

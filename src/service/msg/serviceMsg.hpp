@@ -12,6 +12,7 @@ enum class ServiceMsgType
 	WebsocketServer = 5,
 	//WebsocketClient = 6,
 	TcpServer = 7,
+	TcpClient = 8,
 };
 
 class ServiceMsg
