@@ -5,11 +5,10 @@ local tcp=require "tcp"
 local redis=require "redis"
 
 api.async(function()
-    local redis=redis.new("127.0.0.1",6379)
-    local ret=redis:hkeys("AAA")
-    api.dumpTable(ret)
+    print(crypto.base64Encode("Hello World!"))
+    -- local redis=redis.new("127.0.0.1",6379)
+    -- local ret=redis:hkeys("AAA")
     -- local isOk,ret=redis:get("A")
-    -- api.dumpTable(ret)
     -- print(isOk,ret)
     -- local client=tcp.newClient()
     -- client.onConnectFunc=function()

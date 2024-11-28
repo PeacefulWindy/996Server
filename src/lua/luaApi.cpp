@@ -18,6 +18,9 @@ extern void luaRegisterWebsocketServerAPI(lua_State* state);
 extern void luaRegisterTcpServerAPI(lua_State* state);
 extern void luaRegisterTcpClientAPI(lua_State* state);
 extern void luaRegisterRedisAPI(lua_State* state);
+extern void luaRegisterCryptoBase64API(lua_State* state);
+extern void luaRegisterCryptoRsaAPI(lua_State* state);
+extern void luaRegisterCryptoShaAPI(lua_State* state);
 
 int exit(lua_State* L)
 {
@@ -63,7 +66,6 @@ void luaRegisterAPI(lua_State* state)
 #else
 	lua_pushboolean(state, false);
 #endif
-
 	lua_setglobal(state, "DEBUG_MODE");
 
 	luaRegisterCoreAPI(state);
@@ -77,6 +79,9 @@ void luaRegisterAPI(lua_State* state)
 	luaRegisterTcpServerAPI(state);
 	luaRegisterTcpClientAPI(state);
 	luaRegisterRedisAPI(state);
+	luaRegisterCryptoBase64API(state);
+	luaRegisterCryptoRsaAPI(state);
+	luaRegisterCryptoShaAPI(state);
 }
 
 void luaSetCPath(std::string path)
