@@ -25,6 +25,7 @@ include_directories(${VCPKG_INSTALL_ROOT}/include)
 aux_source_directory(src srcs)
 aux_source_directory(src/lua srcs)
 aux_source_directory(src/json srcs)
+aux_source_directory(src/protobuf srcs)
 aux_source_directory(src/log srcs)
 aux_source_directory(src/sql/mysql srcs)
 aux_source_directory(src/sql/redis srcs)
@@ -62,7 +63,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     cjson 
     unofficial::libmariadb 
     protobuf::libprotoc 
-    protobuf::libprotobuf 
+    protobuf::libprotobuf
     protobuf::libprotobuf-lite
     ixwebsocket::ixwebsocket
     bcrypt

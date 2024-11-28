@@ -3,9 +3,33 @@ local http=require "http"
 local websocket=require "websocket"
 local tcp=require "tcp"
 local redis=require "redis"
+local proto=require "proto"
 
 api.async(function()
-    print(crypto.base64Encode("Hello World!"))
+    local pb=proto.new()
+    if not pb:loadFile("Center.pb") then
+        print("No!")
+        return
+    end
+
+    local data=
+    {
+        roleInfos=
+        {
+            {
+                id=1,
+                name="TestName",
+                sex=2,
+                job=4,
+            }
+        }
+    }
+    local ret,data=pb:encode("Center.GetRoleRet",data)
+    api.print("encode ret:",ret,data,#data)
+    ret,data=pb:decode("Center.GetRoleRet",data)
+    print("decode ret:",ret)
+    api.dumpTable(data)
+    -- print(crypto.base64Encode("Hello World!"))
     -- local redis=redis.new("127.0.0.1",6379)
     -- local ret=redis:hkeys("AAA")
     -- local isOk,ret=redis:get("A")

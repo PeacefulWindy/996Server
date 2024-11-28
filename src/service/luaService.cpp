@@ -40,7 +40,7 @@ int sendService(lua_State* L)
 	auto msgType = luaL_checkinteger(L, 2);
 	auto session= luaL_checkinteger(L, 3);
 	auto data = luaL_checkstring(L, 4);
-	auto dataLen = luaL_checkinteger(L, 5);
+	auto dataLen = luaL_len(L, 4);
 
 	lua_getglobal(L, "SERVICE_ID");
 	auto serviceId = luaL_checkinteger(L, -1);

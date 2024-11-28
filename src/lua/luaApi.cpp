@@ -8,6 +8,7 @@ std::map<std::string, std::string> Envs;
 std::string CPath;
 std::string LuaPath;
 
+extern void luaRegisterProtobufAPI(lua_State* state);
 extern void luaRegisterJsonAPI(lua_State* state);
 extern void luaRegisterMariadbAPI(lua_State* state);
 extern void luaRegisterLogAPI(lua_State* state);
@@ -71,6 +72,7 @@ void luaRegisterAPI(lua_State* state)
 	luaRegisterCoreAPI(state);
 	luaRegisterServiceAPI(state);
 	luaRegisterLogAPI(state);
+	luaRegisterProtobufAPI(state);
 	luaRegisterJsonAPI(state);
 	luaRegisterMariadbAPI(state);
 	luaRegisterHttpServerAPI(state);

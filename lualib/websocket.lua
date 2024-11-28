@@ -27,7 +27,7 @@ function Server:send(fd,data)
         return
     end
 
-    websocketServer.send(self.ptr,fd,data,#data)
+    websocketServer.send(self.ptr,fd,data)
 end
 
 function Server:onMsg(fd,status,msg)

@@ -153,13 +153,13 @@ end
 function api.send(msgType,serviceId,...)
     local args={...}
     local data=json.encode(args)
-    core.send(serviceId,msgType,0,data,#data)
+    core.send(serviceId,msgType,0,data)
 end
 
 function api.response(serviceId,sessionId,...)
     local args={...}
     local data=json.encode(args)
-    core.send(serviceId,api.MsgType.LuaResponse,sessionId,data,#data)
+    core.send(serviceId,api.MsgType.LuaResponse,sessionId,data)
 end
 
 function api.call(msgType,serviceId,...)
@@ -174,7 +174,7 @@ function api.call(msgType,serviceId,...)
 
     local args={...}
     local data=json.encode(args)
-    core.send(serviceId,msgType,sessionId,data,#data)
+    core.send(serviceId,msgType,sessionId,data)
     local status,msg=coroutine.yield(sessionId)
     if not status then
         api.error("call failed!\n",debug.traceback())
