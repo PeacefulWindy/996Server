@@ -359,5 +359,5 @@ void luaRegisterMariadbAPI(lua_State* state)
 	lua_pushcfunction(state, bindStmt);
 	lua_setfield(state, -2, "bindStmt");
 
-	lua_setglobal(state, "Mysql");
+	lua_setglobal(state, "mysql");
 }

@@ -27,6 +27,7 @@ aux_source_directory(src/lua srcs)
 aux_source_directory(src/json srcs)
 aux_source_directory(src/log srcs)
 aux_source_directory(src/sql/mysql srcs)
+aux_source_directory(src/sql/redis srcs)
 aux_source_directory(src/socket srcs)
 aux_source_directory(src/worker srcs)
 aux_source_directory(src/service srcs)
@@ -46,6 +47,7 @@ find_package(protobuf CONFIG REQUIRED)
 find_package(fmt CONFIG REQUIRED)
 find_package(ixwebsocket CONFIG REQUIRED)
 find_package(asio CONFIG REQUIRED)
+find_package(hiredis CONFIG REQUIRED)
 
 add_executable(${PROJECT_NAME} ${srcs} ${LUA_INCLUDE_DIR})
 target_link_libraries(${PROJECT_NAME} PRIVATE 
@@ -56,8 +58,9 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     unofficial::libmariadb 
     protobuf::libprotoc 
     protobuf::libprotobuf 
-    protobuf::libprotobuf-lite 
+    protobuf::libprotobuf-lite
     ixwebsocket::ixwebsocket
     bcrypt
     asio::asio
+    hiredis::hiredis
 )

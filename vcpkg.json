@@ -10,6 +10,7 @@
       "cryptopp",
       "protobuf",
       "ixwebsocket",
-      "asio"
+      "asio",
+      "hiredis"
   	]
 }
