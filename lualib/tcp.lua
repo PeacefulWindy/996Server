@@ -10,17 +10,22 @@ local TcpStatus=
     Msg=3,
 }
 
-function Server:ctor(...)
+function Server:ctor()
     self.ptr=tcpServer.new()
     self.onConnectFunc=nil
     self.onMsgFunc=nil
     api.tcpServers[self.ptr]=self
 end
 
+---@param port integer
+---@param host string
+---@return boolean
 function Server:listen(port,host)
     return tcpServer.listen(self.ptr,port,host)
 end
 
+---@param fd integer
+---@param data string
 function Server:send(fd,data)
     if #data == 0 then
         return
@@ -64,15 +69,19 @@ function Client:destroy()
     tcpClient.destroy(self.ptr)
 end
 
+---@param host string
+---@param port integer
+---@return boolean
 function Client:connect(host,port)
     return tcpClient.connect(self.ptr,host,port)
 end
 
+---@param data string
 function Client:send(data)
     tcpClient.send(self.ptr,data,#data)
 end
 
-function Client:close(data)
+function Client:close()
     tcpClient.close(self.ptr)
 end
 

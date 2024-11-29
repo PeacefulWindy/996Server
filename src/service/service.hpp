@@ -10,7 +10,7 @@
 class Service
 {
 public:
-	Service(int32_t id,std::string name, std::string src);
+	Service(int32_t id, std::string name, std::string src, std::string args);
 	virtual ~Service();
 
 public:

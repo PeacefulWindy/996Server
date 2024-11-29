@@ -24,7 +24,7 @@ void ServiceMgr::destroy()
 	}
 }
 
-int32_t ServiceMgr::newService(std::string name,std::string src,bool isUnique)
+int32_t ServiceMgr::newService(std::string name,std::string src, std::string args,bool isUnique)
 {
 	auto workerMgr = WorkerMgr::getInst();
 	auto workerId = 0;
@@ -44,7 +44,7 @@ int32_t ServiceMgr::newService(std::string name,std::string src,bool isUnique)
 	auto id = this->mAutoId;
 	this->mAutoId++;
 
-	auto service = new Service(id,name, src);
+	auto service = new Service(id, name, src, args);
 
 	while (!this->mServiceLock.try_lock())
 	{

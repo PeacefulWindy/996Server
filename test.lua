@@ -6,6 +6,10 @@ api.newService(
         name="testService",
         src="testService.lua",
         unique=false,
+        args=
+        {
+            A="B"
+        }
     }
 )
 

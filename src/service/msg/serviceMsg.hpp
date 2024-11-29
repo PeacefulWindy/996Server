@@ -6,13 +6,14 @@ enum class ServiceMsgType
 {
 	None = 0,
 	Close = 1,
-	Lua = 2,
-	LuaResponse = 3,
-	HttpClient = 4,
-	WebsocketServer = 5,
-	//WebsocketClient = 6,
-	TcpServer = 7,
-	TcpClient = 8,
+	Timer = 2,
+	Lua = 3,
+	LuaResponse = 4,
+	HttpClient = 5,
+	WebsocketServer = 6,
+	//WebsocketClient = 7,
+	TcpServer = 8,
+	TcpClient = 9,
 };
 
 class ServiceMsg

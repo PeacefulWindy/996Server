@@ -8,9 +8,10 @@ int newService(lua_State * L)
 	auto name = luaL_checkstring(L, 1);
 	auto src = luaL_checkstring(L, 2);
 	auto isUnique = lua_toboolean(L, 3);
+	auto args = luaL_checkstring(L, 4);
 
 	auto serviceMgr = ServiceMgr::getInst();
-	auto id=serviceMgr->newService(name,src, isUnique);
+	auto id = serviceMgr->newService(name, src, args, isUnique);
 
 	lua_pushinteger(L,id);
 	return 1;

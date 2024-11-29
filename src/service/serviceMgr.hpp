@@ -14,7 +14,7 @@ public:
 	static void destroy();
 
 public:
-	int32_t newService(std::string name, std::string src,bool isUnique);
+	int32_t newService(std::string name, std::string src, std::string args, bool isUnique);
 	Service* getService(int32_t id);
 	int32_t queryService(std::string name);
 	void destoryService(int32_t id);

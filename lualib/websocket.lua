@@ -10,7 +10,7 @@ local WebsocketStatus=
     Msg=3,
 }
 
-function Server:ctor(...)
+function Server:ctor()
     self.ptr=websocketServer.new()
     self.onConnectFunc=nil
     self.onCloseFunc=nil
@@ -18,10 +18,16 @@ function Server:ctor(...)
     api.websocketServers[self.ptr]=self
 end
 
+---@param port integer
+---@param host string
+---@param maxConnection integer
+---@return boolean
 function Server:listen(port,host,maxConnection)
     return websocketServer.listen(self.ptr,port,host,maxConnection)
 end
 
+---@param fd integer
+---@param data string
 function Server:send(fd,data)
     if #data == 0 then
         return

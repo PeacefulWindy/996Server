@@ -3,13 +3,14 @@ local api=
     MsgType=
     {
         Close=1,
-        Lua=2,
-        LuaResponse=3,
-        HttpClient=4,
-        WebsocketServer=5,
-        WebsocketClient=6,
-        TcpServer=7,
-        TcpClient=8,
+        Timer=2,
+        Lua=3,
+        LuaResponse=4,
+        HttpClient=5,
+        WebsocketServer=6,
+        WebsocketClient=7,
+        TcpServer=8,
+        TcpClient=9,
     },
     websocketServers={},
     tcpServers={},
@@ -17,6 +18,7 @@ local api=
     httpCoro={},
     nextCoro={},
     callCoro={},
+    timers={},
     protocolRegister={},
     autoSessionId=1,
     callTimeout=20,
@@ -56,6 +58,20 @@ function api.error(...)
     log.error(string.format("[%s]:%s",SERVICE_NAME or "main",table.concat(tb,"\t")))
 end
 
+---@param key string
+---@return string
+function api.env(key)
+    return core.env(key) or ""
+end
+
+---@param key string
+---@param value string
+function api.setEnv(key,value)
+    core.env(key,value)
+end
+
+---@param tb table
+---@return table
 function api.copyTable(tb)
     local ret={}
 
@@ -70,8 +86,11 @@ function api.copyTable(tb)
     return ret
 end
 
+---@param tb table
+---@param name? string
+---@param layer? integer
 function api.dumpTable(tb,name,layer)
-    if not tb then
+    if not tb or type(tb) ~= "table" then
         return
     end
 
@@ -106,13 +125,31 @@ function api.dumpTable(tb,name,layer)
     end
 end
 
+---@return integer
+function api.time()
+    return core.time()
+end
+
+---@return integer
+function api.mstime()
+    return core.mstime()
+end
+
+---@return table
+function api.args()
+    return json.decode(SERVICE_SYSARGS or {})
+end
+
 function api.exit()
     core.exit()
 end
 
----@param args table
----@return number
-function api.newService(args)
+---@param name string
+---@param src string
+---@param isUnique? boolean @default false
+---@param args? table
+---@return integer
+function api.newService(name,src,isUnique,args)
     if not args.name then
         log.error("invalid newService name!")
         return
@@ -123,15 +160,14 @@ function api.newService(args)
         return
     end
 
-    local name=args.name
-    local src=args.src
-    local isUnique=args.unique or false
+    local isUnique=isUnique or false
+    local sysArgs=args or {}
 
-    return core.newService(name,src,isUnique)
+    return core.newService(name,src,isUnique,json.encode(sysArgs))
 end
 
 ---@param name string
----@return number
+---@return integer
 function api.queryService(name)
     return core.queryService(name)
 end
@@ -141,27 +177,37 @@ function api.destroyService(id)
     core.send(id,api.MsgType.Close,0,"",0)
 end
 
+---@param func fun()
 function api.async(func)
     local co=coroutine.create(func)
     table.insert(api.nextCoro,co)
 end
 
+---@param type integer @api.MsgType
+---@param func fun(source:integer,session:integer,...)
 function api.dispatch(type,func)
     api.protocolRegister[type]=func
 end
 
+---@param msgType integer @api.MsgType
+---@param serviceId integer
 function api.send(msgType,serviceId,...)
     local args={...}
     local data=json.encode(args)
     core.send(serviceId,msgType,0,data)
 end
 
+---@param serviceId integer
+---@param sessionId integer
+---@return ...
 function api.response(serviceId,sessionId,...)
     local args={...}
     local data=json.encode(args)
     core.send(serviceId,api.MsgType.LuaResponse,sessionId,data)
 end
 
+---@param msgType integer @api.MsgType
+---@param serviceId integer
 function api.call(msgType,serviceId,...)
     local sessionId=api.autoSessionId
     api.autoSessionId=api.autoSessionId+1
@@ -215,6 +261,11 @@ function onPoll()
     for _,it in pairs(msgs)do
         if it.msgType == api.MsgType.Close then
             isExit=true
+        elseif it.msgType == api.MsgType.Timer then
+            local func=api.timers[it.session]
+            if func then
+                func()
+            end
         elseif it.msgType == api.MsgType.HttpClient then
             local co=api.httpCoro[it.session]
             if co then
@@ -263,8 +314,18 @@ function onPoll()
     end
 end
 
+---@param func fun()
 function api.shutdown(func)
     api.closeFunc=func
+end
+
+---@param time integer @millseconds
+---@param func fun()
+function api.timer(time,func)
+    local session=api.autoSessionId
+    api.autoSessionId=api.autoSessionId+1
+    api.timers[session]=func
+    core.timer(session,time)
 end
 
 api.dispatch(api.MsgType.LuaResponse,function(_,session,...)

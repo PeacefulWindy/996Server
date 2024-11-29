@@ -30,7 +30,14 @@ void fetchCreateLuaTable(lua_State* state, cJSON* node)
 			lua_pushstring(state, childNode->valuestring);
 			break;
 		case cJSON_Number:
-			lua_pushnumber(state, childNode->valuedouble);
+			if (childNode->valueint == childNode->valuedouble)
+			{
+				lua_pushinteger(state, childNode->valueint);
+			}
+			else
+			{
+				lua_pushnumber(state, childNode->valuedouble);
+			}
 			break;
 		case cJSON_True:
 			lua_pushboolean(state, true);
@@ -91,7 +98,14 @@ cJSON* fetchCreateJson(lua_State* state)
 			item = cJSON_CreateBool(lua_toboolean(state, -1));
 			break;
 		case LUA_TNUMBER:
-			item = cJSON_CreateNumber(lua_tonumber(state, -1));
+			if (lua_isinteger(state, -1))
+			{
+				item = cJSON_CreateNumber(lua_tointeger(state, -1));
+			}
+			else
+			{
+				item = cJSON_CreateNumber(lua_tonumber(state, -1));
+			}
 			break;
 		case LUA_TSTRING:
 			item = cJSON_CreateString(lua_tostring(state, -1));

@@ -304,7 +304,7 @@ int bindStmt(lua_State* state)
 		}
 		else if (type == LUA_TNUMBER)
 		{
-			arg.buffer_type = MYSQL_TYPE_STRING;
+			arg.buffer_type = MYSQL_TYPE_FLOAT;
 			auto floatPtr = lua_tonumber(state, i);
 			arg.buffer = &floatPtr;
 			arg.buffer_length = sizeof(float);
@@ -345,16 +345,16 @@ void luaRegisterMariadbAPI(lua_State* state)
 	lua_setfield(state, -2, "connect");
 
 	lua_pushcfunction(state, newStmt);
-	lua_setfield(state, -2, "new");
+	lua_setfield(state, -2, "newStmt");
+
+	lua_pushcfunction(state, destroyStmt);
+	lua_setfield(state, -2, "destroyStmt");
 
 	lua_pushcfunction(state, prepare);
 	lua_setfield(state, -2, "prepare");
 
 	lua_pushcfunction(state, exec);
 	lua_setfield(state, -2, "exec");
-
-	lua_pushcfunction(state, destroyStmt);
-	lua_setfield(state, -2, "destroyStmt");
 
 	lua_pushcfunction(state, bindStmt);
 	lua_setfield(state, -2, "bindStmt");

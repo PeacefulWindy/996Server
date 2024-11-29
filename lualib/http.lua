@@ -2,7 +2,14 @@ require "class"
 local api=require "api"
 local _M={}
 
+---@param url string
+---@param headers? string
+---@return table
 function _M.get(url,headers)
+    if not url then
+        return
+    end
+
     local args=
     {
         url=url,
@@ -23,7 +30,15 @@ function _M.get(url,headers)
     return response
 end
 
+---@param url string
+---@param form? table
+---@param headers? string
+---@return table
 function _M.post(url,form,headers)
+    if not url then
+        return
+    end
+
     local args=
     {
         url=url,

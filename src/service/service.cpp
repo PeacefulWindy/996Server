@@ -4,7 +4,7 @@
 #include<filesystem>
 #include <worker/workerMgr.hpp>
 
-Service::Service(int32_t id, std::string name, std::string src)
+Service::Service(int32_t id, std::string name, std::string src,std::string args)
 	:mId(id),mName(name)
 {
 	this->mState = luaNewState();
@@ -33,6 +33,9 @@ Service::Service(int32_t id, std::string name, std::string src)
 
 	lua_pushstring(this->mState, this->mName.c_str());
 	lua_setglobal(this->mState, "SERVICE_NAME");
+
+	lua_pushstring(this->mState, args.c_str());
+	lua_setglobal(this->mState, "SERVICE_SYSARGS");
 
 	lua_pushlightuserdata(this->mState, this);
 	lua_setglobal(this->mState, "SERVICE_PTR");

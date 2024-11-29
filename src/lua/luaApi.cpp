@@ -1,13 +1,22 @@
 #include"lua.hpp"
 #include "luaApi.hpp"
 #include<string>
-#include <map>
+#include <chrono>
+#include<asio/steady_timer.hpp>
+#include<service/msg/serviceMsg.hpp>
+#include<service/msg/serviceMsgPool.hpp>
+#include<service/serviceMgr.hpp>
+
+extern asio::io_context IoContext;
 
 bool IsRun = true;
-std::map<std::string, std::string> Envs;
+std::mutex EnvLock;
+std::unordered_map<std::string, std::string> Envs;
 std::string CPath;
 std::string LuaPath;
 
+extern void luaRegisterFsAPI(lua_State* state);
+extern void luaRegisterConfigAPI(lua_State* state);
 extern void luaRegisterProtobufAPI(lua_State* state);
 extern void luaRegisterJsonAPI(lua_State* state);
 extern void luaRegisterMariadbAPI(lua_State* state);
@@ -50,6 +59,89 @@ void luaRegisterCoreAPI(lua_State* state)
 	lua_pushcfunction(state, exit);
 	lua_setfield(state, -2, "exit");
 
+	lua_pushcfunction(state, [](lua_State* L)->int32_t
+		{
+			auto key = luaL_checkstring(L, 1);
+			auto value = luaL_checkstring(L, 2);
+
+			while (!EnvLock.try_lock())
+			{
+				std::this_thread::sleep_for(std::chrono::milliseconds(10));
+			}
+
+			Envs.insert({ key,value });
+
+			EnvLock.unlock();
+			return 1;
+		});
+	lua_setfield(state, -2, "setEnv");
+
+	lua_pushcfunction(state, [](lua_State* L)->int32_t
+		{
+			auto key = luaL_checkstring(L, 1);
+
+			while (!EnvLock.try_lock())
+			{
+				std::this_thread::sleep_for(std::chrono::milliseconds(10));
+			}
+
+			auto iter = Envs.find(key);
+			if (iter != Envs.end())
+			{
+				lua_pushstring(L, iter->second.c_str());
+			}
+
+			EnvLock.unlock();
+			return 1;
+		});
+	lua_setfield(state, -2, "env");
+
+	lua_pushcfunction(state, [](lua_State* L)->int32_t
+		{
+			auto now = std::chrono::system_clock::now();
+			auto second = std::chrono::time_point_cast<std::chrono::seconds>(now);
+			lua_pushinteger(L, second.time_since_epoch().count());
+			return 1;
+		});
+	lua_setfield(state, -2, "time");
+
+	lua_pushcfunction(state, [](lua_State* L)->int32_t
+		{
+			auto now = std::chrono::system_clock::now();
+			auto milliseconds = std::chrono::time_point_cast<std::chrono::milliseconds>(now);
+			lua_pushinteger(L, milliseconds.time_since_epoch().count());
+			return 1;
+		});
+	lua_setfield(state, -2, "mstime");
+
+	lua_pushcfunction(state, [](lua_State* L)->int32_t
+		{
+			auto session = luaL_checkinteger(L, 1);
+			auto millsecond = luaL_checkinteger(L, 2);
+
+			lua_getglobal(L, "SERVICE_ID");
+			auto serviceId = luaL_checkinteger(L, -1);
+
+			auto timer=std::make_shared<asio::steady_timer>(IoContext, std::chrono::milliseconds(millsecond));
+			timer->async_wait([timer, session, serviceId](std::error_code ec)->void
+				{
+					if (ec)
+					{
+						return;
+					}
+
+					auto serviceMsgPool = ServiceMsgPool::getInst();
+					auto msg=serviceMsgPool->pop();
+					msg->session = session;
+					msg->msgType = static_cast<uint32_t>(ServiceMsgType::Timer);
+
+					ServiceMgr::getInst()->send(serviceId, msg);
+				});
+
+			return 0;
+		});
+	lua_setfield(state, -2, "timer");
+
 	if (!hasTable)
 	{
 		lua_setglobal(state, name);
@@ -71,6 +163,8 @@ void luaRegisterAPI(lua_State* state)
 
 	luaRegisterCoreAPI(state);
 	luaRegisterServiceAPI(state);
+	luaRegisterFsAPI(state);
+	luaRegisterConfigAPI(state);
 	luaRegisterLogAPI(state);
 	luaRegisterProtobufAPI(state);
 	luaRegisterJsonAPI(state);
