@@ -11,6 +11,7 @@
       "protobuf",
       "ixwebsocket",
       "asio",
-      "hiredis"
+      "hiredis",
+      "stduuid"
   	]
 }

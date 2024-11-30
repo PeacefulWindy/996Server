@@ -27,6 +27,7 @@ aux_source_directory(src/fs srcs)
 aux_source_directory(src/lua srcs)
 aux_source_directory(src/json srcs)
 aux_source_directory(src/protobuf srcs)
+aux_source_directory(src/uuid srcs)
 aux_source_directory(src/config srcs)
 aux_source_directory(src/log srcs)
 aux_source_directory(src/timer srcs)
@@ -57,6 +58,7 @@ find_package(fmt CONFIG REQUIRED)
 find_package(ixwebsocket CONFIG REQUIRED)
 find_package(asio CONFIG REQUIRED)
 find_package(hiredis CONFIG REQUIRED)
+find_package(stduuid CONFIG REQUIRED)
 
 add_executable(${PROJECT_NAME} ${srcs} ${LUA_INCLUDE_DIR})
 target_link_libraries(${PROJECT_NAME} PRIVATE 
@@ -72,4 +74,5 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     bcrypt
     asio::asio
     hiredis::hiredis
+    stduuid
 )

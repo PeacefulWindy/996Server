@@ -31,6 +31,7 @@ extern void luaRegisterRedisAPI(lua_State* state);
 extern void luaRegisterCryptoBase64API(lua_State* state);
 extern void luaRegisterCryptoRsaAPI(lua_State* state);
 extern void luaRegisterCryptoShaAPI(lua_State* state);
+extern void luaRegisterUUIDAPI(lua_State* state);
 
 int exit(lua_State* L)
 {
@@ -178,6 +179,7 @@ void luaRegisterAPI(lua_State* state)
 	luaRegisterCryptoBase64API(state);
 	luaRegisterCryptoRsaAPI(state);
 	luaRegisterCryptoShaAPI(state);
+	luaRegisterUUIDAPI(state);
 }
 
 void luaSetCPath(std::string path)
