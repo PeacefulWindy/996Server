@@ -1,5 +1,4 @@
 local class=require "class"
-local api=require "api"
 local _M=class()
 
 ---@param host string

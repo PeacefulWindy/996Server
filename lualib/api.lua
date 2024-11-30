@@ -150,12 +150,12 @@ end
 ---@param args? table
 ---@return integer
 function api.newService(name,src,isUnique,args)
-    if not args.name then
+    if not name then
         log.error("invalid newService name!")
         return
     end
 
-    if not args.src then
+    if not src then
         log.error("invalid newService src!")
         return
     end
