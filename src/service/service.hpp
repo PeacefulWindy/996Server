@@ -32,7 +32,7 @@ public:
 private:
 	std::string mName;
 	int32_t mId;
-	lua_State* mState;
+	lua_State* mState = nullptr;
 	bool mIsInit = false;
 	std::queue<std::shared_ptr<ServiceMsg>> mMsgs;
 	std::mutex mMsgLock;

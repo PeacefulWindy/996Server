@@ -7,26 +7,28 @@
 Service::Service(int32_t id, std::string name, std::string src,std::string args)
 	:mId(id),mName(name)
 {
-	this->mState = luaNewState();
-
 	auto& basePaths = ServiceMgr::getInst()->getServicePath();
+	auto rootPath = std::string();
 	auto filePath = std::string();
 	for (auto it = basePaths.begin(); it != basePaths.end(); ++it)
 	{
 		auto srcPath = (*it) + "/" + src;
 		if (std::filesystem::exists(srcPath))
 		{
+			rootPath = *it;
 			filePath = srcPath;
 			break;
 		}
 	}
 
-	if (filePath.size() == 0)
+	if (filePath.length() == 0)
 	{
 		spdlog::error("not found service file:{}", src.c_str());
 		luaExit();
 		return;
 	}
+
+	this->mState = luaNewState(rootPath + "/?.lua");
 
 	lua_pushinteger(this->mState, this->mId);
 	lua_setglobal(this->mState, "SERVICE_ID");
@@ -76,6 +78,11 @@ const std::string Service::getName() const
 
 std::vector<std::shared_ptr<ServiceMsg>> Service::popAllMsg()
 {
+	if (!this->mIsInit)
+	{
+		return std::vector<std::shared_ptr<ServiceMsg>>();
+	}
+
 	while (!this->mMsgLock.try_lock())
 	{
 		std::this_thread::sleep_for(std::chrono::milliseconds(10));
@@ -95,6 +102,11 @@ std::vector<std::shared_ptr<ServiceMsg>> Service::popAllMsg()
 
 void Service::pushMsg(std::shared_ptr<ServiceMsg> msg)
 {
+	if (!this->mIsInit)
+	{
+		return;
+	}
+
 	while (!this->mMsgLock.try_lock())
 	{
 		std::this_thread::sleep_for(std::chrono::milliseconds(10));

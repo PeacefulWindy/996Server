@@ -197,14 +197,20 @@ bool luaIsRun()
 	return IsRun;
 }
 
-lua_State* luaNewState()
+lua_State* luaNewState(std::string externLuaPath)
 {
 	auto L = luaL_newstate();
 	luaL_openlibs(L);
 
 	lua_getglobal(L, "package");
+	
+	auto path = LuaPath;
+	if (externLuaPath.length() > 0)
+	{
+		path = externLuaPath + ";" + path;
+	}
 
-	lua_pushstring(L, LuaPath.c_str());
+	lua_pushstring(L, path.c_str());
 	lua_setfield(L, -2, "path");
 
 	lua_pushstring(L, CPath.c_str());
