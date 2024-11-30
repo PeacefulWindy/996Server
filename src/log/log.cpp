@@ -36,12 +36,6 @@ void luaRegisterLogAPI(lua_State* state)
 
 	lua_newtable(state);
 
-#ifdef _DEBUG
-	spdlog::set_level(spdlog::level::debug);
-#else
-	spdlog::set_level(spdlog::level::info);
-#endif
-
 	lua_pushcfunction(state, debug);
 	lua_setfield(state, -2, "debug");
 

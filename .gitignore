@@ -36,3 +36,4 @@
 *.pdb
 .vs/
 out/
+log/

@@ -7,13 +7,20 @@
 #include <ixwebsocket/IXNetSystem.h>
 #include <service/msg/serviceMsgPool.hpp>
 #include<asio.hpp>
+#include<filesystem>
+#include <spdlog/sinks/stdout_color_sinks.h>
+#include <spdlog/sinks/basic_file_sink.h>
 
 struct ServerConfig
 {
 	int32_t threadNum = std::thread::hardware_concurrency();
 	std::string startScript;
 	std::string logFilePath;
+#ifdef _DEBUG
 	std::string logLevel = "debug";
+#else
+	std::string logLevel = "info";
+#endif
 	std::string cPath;
 	std::string luaPath;
 	std::vector<std::string> servicePaths;
@@ -39,28 +46,28 @@ bool readConfig(lua_State * L,ServerConfig &config)
 	lua_pushnil(L);
 	while (lua_next(L, index) != 0)
 	{
-		auto key = luaL_checkstring(L, -2);
-		if (strcmp(key,"thread") == 0)
+		auto key = std::string(luaL_checkstring(L, -2));
+		if (key == "thread")
 		{
 			config.threadNum = luaL_checknumber(L, -1);
 		}
-		else if (strcmp(key, "start") == 0)
+		else if (key == "start")
 		{
 			config.startScript = luaL_checkstring(L, -1);
 		}
-		else if(strcmp(key,"logFile") == 0)
+		else if(key == "logFile")
 		{
 			config.logFilePath = luaL_checkstring(L, -1);
 		}
-		else if (strcmp(key, "luaPath") == 0)
+		else if (key == "luaPath")
 		{
 			config.luaPath = luaL_checkstring(L, -1);
 		}
-		else if (strcmp(key, "cPath") == 0)
+		else if (key == "cPath")
 		{
 			config.cPath = luaL_checkstring(L, -1);
 		}
-		else if (strcmp(key, "servicePath") == 0)
+		else if (key == "servicePath")
 		{
 			auto argIndex = lua_gettop(L);
 			lua_pushnil(L);
@@ -70,7 +77,7 @@ bool readConfig(lua_State * L,ServerConfig &config)
 				lua_pop(L, 1);
 			}
 		}
-		else if (strcmp(key, "args") == 0)
+		else if (key == "args")
 		{
 			auto argIndex = lua_gettop(L);
 			lua_pushnil(L);
@@ -94,6 +101,58 @@ bool readConfig(lua_State * L,ServerConfig &config)
 	{
 		spdlog::error("invalid thread num!");
 		return false;
+	}
+
+	return true;
+}
+
+std::shared_ptr<spdlog::logger> Logger;
+
+bool setLog(ServerConfig& config)
+{
+	auto logLevel = spdlog::level::debug;
+
+	if (config.logLevel == "info")
+	{
+		logLevel = spdlog::level::info;
+	}
+	else if (config.logLevel == "error")
+	{
+		logLevel = spdlog::level::err;
+	}
+	else if (config.logLevel == "warn")
+	{
+		logLevel = spdlog::level::warn;
+	}
+
+	if (!config.logFilePath.empty())
+	{
+		auto path = std::filesystem::u8path(config.logFilePath);
+		auto dirPath = path.parent_path();
+		if (!std::filesystem::exists(dirPath))
+		{
+			std::filesystem::create_directories(dirPath);
+		}
+
+		try
+		{
+			auto consoleSink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
+			consoleSink->set_level(logLevel);
+
+			auto fileSink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(config.logFilePath, true);
+			fileSink->set_level(logLevel);
+
+			auto sinks = std::vector<spdlog::sink_ptr>{ consoleSink,fileSink };
+			Logger = std::make_shared<spdlog::logger>("log",sinks.begin(), sinks.end());
+			spdlog::set_default_logger(Logger);
+			spdlog::flush_on(logLevel);
+			spdlog::flush_every(std::chrono::seconds(5));
+		}
+		catch (const spdlog::spdlog_ex& e)
+		{
+			spdlog::error(e.what());
+			return false;
+		}
 	}
 
 	return true;
@@ -128,14 +187,25 @@ int main(int arg,char * argv[])
 #else
 
 #endif
-
 	auto configPath = argv[1];
-
 	auto L = luaL_newstate();
+	luaL_openlibs(L);
 
-	if (luaL_dofile(L, configPath) != LUA_OK)
+	if (luaL_loadfile(L, configPath) != LUA_OK)
 	{
 		spdlog::error("not found config:{},exit", configPath);
+		return -1;
+	}
+
+	auto argNum = arg - 2;
+	for (auto i = 2; i < arg; i++)
+	{
+		lua_pushstring(L, argv[i]);
+	}
+
+	if (lua_pcall(L, argNum, LUA_MULTRET, 0) != LUA_OK)
+	{
+		spdlog::error("{}", lua_tostring(L, -1));
 		return -1;
 	}
 
@@ -151,6 +221,18 @@ int main(int arg,char * argv[])
 
 	luaSetLuaPath(config.luaPath);
 	luaSetCPath(config.cPath);
+	if (!setLog(config))
+	{
+		return -1;
+	}
+
+	L = luaNewState();
+
+	if (luaL_loadfile(L, config.startScript.c_str()) != LUA_OK)
+	{
+		spdlog::error("not found start script:{},exit", config.startScript);
+		return -1;
+	}
 
 	auto serviceMgr = ServiceMgr::getInst();
 	for (auto it = config.servicePaths.begin(); it != config.servicePaths.end(); ++it)
@@ -161,18 +243,14 @@ int main(int arg,char * argv[])
 	auto workerMgr = WorkerMgr::getInst();
 	workerMgr->initWorker(config.threadNum);
 
-	L = luaNewState();
-
-	lua_newtable(L);
-	for (auto i = 0;i< config.args.size(); i++)
+	auto configArgNum = config.args.size();
+	for (auto i = 0;i< configArgNum; i++)
 	{
 		auto &arg = config.args[i];
 		lua_pushstring(L, arg.c_str());
-		lua_rawseti(L, -2, static_cast<lua_Integer>(i) + 1);
 	}
-	lua_setglobal(L, "SysArgs");
 
-	if (luaL_dofile(L, config.startScript.c_str()) != LUA_OK)
+	if (lua_pcall(L, configArgNum, LUA_MULTRET, 0) != LUA_OK)
 	{
 		spdlog::error("{}", lua_tostring(L, -1));
 		workerMgr->destroy();
