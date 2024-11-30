@@ -1,4 +1,4 @@
-require "class"
+local class=require "class"
 local api=require "api"
 local _M={}
 
@@ -57,6 +57,40 @@ function _M.post(url,form,headers)
     api.httpCoro[sessionId]=co
     local response=coroutine.yield()
     return response
+end
+
+local HttpServer=class("HttpServer")
+
+function HttpServer:ctor()
+    self.router={}
+    self.ptr=httpServer.new(function(request)
+        local func=self.router[request.uri]
+        if not func then
+            return
+        end
+
+        return func(request)
+    end)
+end
+
+function HttpServer:destroy()
+    httpServer.destroy(self.ptr)
+end
+
+---@param uri string
+---@param func fun(request:string)
+function HttpServer:on(uri,func)
+    self.router[uri]=func
+end
+
+---@param port integer
+---@return boolean
+function HttpServer:listen(port)
+    return httpServer.listen(self.ptr,port)
+end
+
+function _M.newHttpServer()
+    return HttpServer.new()
 end
 
 return _M
