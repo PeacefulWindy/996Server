@@ -89,7 +89,7 @@ end
 ---@param tb table
 ---@param name? string
 ---@param layer? integer
-function api.dumpTable(tb,name,layer)
+function api.dumpTable(tb,name,layer,printFunc)
     if not name then
         name=""
     end
@@ -98,14 +98,18 @@ function api.dumpTable(tb,name,layer)
         layer=0
     end
 
+    if not printFunc then
+        printFunc=print
+    end
+
     if layer == 0 then
-        print("==========",name," Start==========")
+        printFunc("==========",name," Start==========")
     end
 
     if not tb or type(tb) ~= "table" then
-        print("invalid table!")
+        printFunc("invalid table!")
         if layer == 0 then
-            print("==========",name," End==========")
+            printFunc("==========",name," End==========")
         end
         return
     end
@@ -116,15 +120,15 @@ function api.dumpTable(tb,name,layer)
         end
 
         if type(v) == "table" then
-            print(name..table.concat(spaceTb," ").."["..type(k).."]"..k.." => ")
-            api.dumpTable(v,name,layer+1)
+            printFunc(name..table.concat(spaceTb," ").."["..type(k).."]"..k.." => ")
+            api.dumpTable(v,name,layer+1,printFunc)
         else
-            print(name..table.concat(spaceTb," ").."["..type(k).."]"..k.." = ["..type(v).."]"..tostring(v))
+            printFunc(name..table.concat(spaceTb," ").."["..type(k).."]"..k.." = ["..type(v).."]"..tostring(v))
         end
     end
 
     if layer == 0 then
-        print("==========",name," End==========")
+        printFunc("==========",name," End==========")
     end
 end
 
