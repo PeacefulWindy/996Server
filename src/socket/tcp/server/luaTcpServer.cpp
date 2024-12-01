@@ -112,6 +112,23 @@ int32_t sendTcpServer(lua_State* L)
 	return 0;
 }
 
+int32_t closeTcpServer(lua_State* L)
+{
+	auto id = luaL_checkinteger(L, 1);
+	auto fd = luaL_checkinteger(L, 2);
+
+	auto tcpServerMgr = TcpServerMgr::getInst();
+	auto server = tcpServerMgr->getServer(id);
+	if (!server)
+	{
+		return 0;
+	}
+
+	server->close(fd);
+
+	return 0;
+}
+
 void luaRegisterTcpServerAPI(lua_State* state)
 {
 	lua_settop(state, 0);
@@ -129,6 +146,9 @@ void luaRegisterTcpServerAPI(lua_State* state)
 
 	lua_pushcfunction(state, sendTcpServer);
 	lua_setfield(state, -2, "send");
+
+	lua_pushcfunction(state, closeTcpServer);
+	lua_setfield(state, -2, "close");
 
 	lua_setglobal(state, "tcpServer");
 }

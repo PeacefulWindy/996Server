@@ -34,6 +34,11 @@ function Server:send(fd,data)
     tcpServer.send(self.ptr,fd,data,#data)
 end
 
+---@param fd integer
+function Server:close(fd)
+    tcpServer.close(self.ptr,fd)
+end
+
 function Server:onMsg(fd,status,msg)
     if status == TcpStatus.Open then
         if self.onConnectFunc then

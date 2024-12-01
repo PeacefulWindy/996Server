@@ -21,9 +21,6 @@ public:
 	const std::string getName()const;
 
 public:
-	std::vector<std::shared_ptr<ServiceMsg>> popAllMsg();
-
-public:
 	void pushMsg(std::shared_ptr<ServiceMsg> msg);
 
 public:

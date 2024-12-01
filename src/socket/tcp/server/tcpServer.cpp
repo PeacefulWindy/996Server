@@ -66,7 +66,6 @@ void TcpServer::close(uint64_t fd)
 	}
 
 	this->mSessions.erase(iter);
-
 	this->mLock.unlock();
 }
 

@@ -91,6 +91,7 @@ end
 ---@param layer? integer
 function api.dumpTable(tb,name,layer)
     if not tb or type(tb) ~= "table" then
+        print("invalid table!")
         return
     end
 
@@ -124,6 +125,22 @@ function api.dumpTable(tb,name,layer)
         print("==========",name," End==========")
     end
 end
+
+---@param text string
+---@param sep string
+---@return table
+function api.split(text, sep)
+    if not sep then
+        return {text}
+    end
+
+    local t = {}
+    for token in string.gmatch(text, "([^" .. sep .. "]+)") do
+        table.insert(t, token)
+    end
+    return t
+end
+
 
 ---@return integer
 function api.time()
@@ -234,7 +251,7 @@ function api.quit()
     core.exit()
 end
 
-function onPoll()
+function onPoll(msgs)
     for i=#api.nextCoro,1,-1 do
         local co=api.nextCoro[i]
         table.remove(api.nextCoro,i)
@@ -256,7 +273,6 @@ function onPoll()
         end
     end
 
-    local msgs=core.getAllMsg()
     local isExit=false
     for _,it in pairs(msgs)do
         if it.msgType == api.MsgType.Close then
@@ -276,25 +292,19 @@ function onPoll()
             end
         elseif it.msgType == api.MsgType.WebsocketServer then
             local inst=api.websocketServers[it.session]
-            if not inst then
-                return
+            if inst then
+                inst:onMsg(it.fd,it.status,it.data)
             end
-
-            inst:onMsg(it.fd,it.status,it.data)
         elseif it.msgType == api.MsgType.TcpServer then
             local inst=api.tcpServers[it.session]
-            if not inst then
-                return
+            if inst then
+                inst:onMsg(it.fd,it.status,it.data)
             end
-
-            inst:onMsg(it.fd,it.status,it.data)
         elseif it.msgType == api.MsgType.TcpClient then
             local inst=api.tcpClients[it.session]
-            if not inst then
-                return
+            if inst then
+                inst:onMsg(it.status,it.data)
             end
-
-            inst:onMsg(it.status,it.data)
         else
             local func=api.protocolRegister[it.msgType]
             if func then

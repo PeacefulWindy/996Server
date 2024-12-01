@@ -3,6 +3,7 @@
 #include<service/serviceMgr.hpp>
 #include<filesystem>
 #include <worker/workerMgr.hpp>
+#include<service/msg/serviceMsgPool.hpp>
 
 Service::Service(int32_t id, std::string name, std::string src,std::string args)
 	:mId(id),mName(name)
@@ -68,36 +69,19 @@ void Service::close()
 		return;
 	}
 
-	this->mIsInit = false;
-}
-
-const std::string Service::getName() const
-{
-	return this->mName;
-}
-
-std::vector<std::shared_ptr<ServiceMsg>> Service::popAllMsg()
-{
-	if (!this->mIsInit)
-	{
-		return std::vector<std::shared_ptr<ServiceMsg>>();
-	}
-
 	while (!this->mMsgLock.try_lock())
 	{
 		std::this_thread::sleep_for(std::chrono::milliseconds(10));
 	}
 
-	auto datas = std::vector<std::shared_ptr<ServiceMsg>>();
-	while (!this->mMsgs.empty())
-	{
-		datas.emplace_back(this->mMsgs.front());
-		this->mMsgs.pop();
-	}
+	this->mIsInit = false;
 
 	this->mMsgLock.unlock();
+}
 
-	return datas;
+const std::string Service::getName() const
+{
+	return this->mName;
 }
 
 void Service::pushMsg(std::shared_ptr<ServiceMsg> msg)
@@ -134,7 +118,51 @@ void Service::poll()
 
 	if (lua_isfunction(this->mState, -1))
 	{
-		if (lua_pcall(this->mState, 0, 0, 0) != LUA_OK)
+		auto serviceMsgPool = ServiceMsgPool::getInst();
+		while (!this->mMsgLock.try_lock())
+		{
+			std::this_thread::sleep_for(std::chrono::milliseconds(10));
+		}
+
+		lua_newtable(this->mState);
+		auto index = 1;
+		while(!this->mMsgs.empty())
+		{
+			auto it = this->mMsgs.front();
+			this->mMsgs.pop();
+
+			lua_newtable(this->mState);
+
+			lua_pushinteger(this->mState, it->msgType);
+			lua_setfield(this->mState, -2, "msgType");
+
+			lua_pushinteger(this->mState, it->session);
+			lua_setfield(this->mState, -2, "session");
+
+			lua_pushinteger(this->mState, it->source);
+			lua_setfield(this->mState, -2, "source");
+
+			lua_pushstring(this->mState, reinterpret_cast<const char*>(it->data.data()));
+			lua_setfield(this->mState, -2, "data");
+
+			lua_pushstring(this->mState, it->error.c_str());
+			lua_setfield(this->mState, -2, "error");
+
+			lua_pushinteger(this->mState, it->status);
+			lua_setfield(this->mState, -2, "status");
+
+			lua_pushinteger(this->mState, it->fd);
+			lua_setfield(this->mState, -2, "fd");
+
+			lua_rawseti(this->mState, -2, index);
+			index++;
+
+			serviceMsgPool->push(it);
+		}
+
+		this->mMsgLock.unlock();
+
+		if (lua_pcall(this->mState, 1, 0, 0) != LUA_OK)
 		{
 			spdlog::error("{}", lua_tostring(this->mState, -1));
 		}

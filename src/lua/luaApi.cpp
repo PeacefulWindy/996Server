@@ -22,7 +22,6 @@ extern void luaRegisterJsonAPI(lua_State* state);
 extern void luaRegisterMariadbAPI(lua_State* state);
 extern void luaRegisterLogAPI(lua_State* state);
 extern void luaRegisterServiceAPI(lua_State* state);
-extern void luaRegisterHttpServerAPI(lua_State* state);
 extern void luaRegisterHttpClientAPI(lua_State* state);
 extern void luaRegisterWebsocketServerAPI(lua_State* state);
 extern void luaRegisterTcpServerAPI(lua_State* state);
@@ -170,7 +169,6 @@ void luaRegisterAPI(lua_State* state)
 	luaRegisterProtobufAPI(state);
 	luaRegisterJsonAPI(state);
 	luaRegisterMariadbAPI(state);
-	luaRegisterHttpServerAPI(state);
 	luaRegisterHttpClientAPI(state);
 	luaRegisterWebsocketServerAPI(state);
 	luaRegisterTcpServerAPI(state);

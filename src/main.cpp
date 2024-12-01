@@ -125,6 +125,11 @@ bool setLog(ServerConfig& config)
 		logLevel = spdlog::level::warn;
 	}
 
+	auto consoleSink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
+	consoleSink->set_level(logLevel);
+
+	auto fileSink = std::shared_ptr<spdlog::sinks::basic_file_sink_mt>();
+
 	if (!config.logFilePath.empty())
 	{
 		auto path = std::filesystem::u8path(config.logFilePath);
@@ -136,17 +141,8 @@ bool setLog(ServerConfig& config)
 
 		try
 		{
-			auto consoleSink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
-			consoleSink->set_level(logLevel);
-
-			auto fileSink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(config.logFilePath, true);
+			fileSink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(config.logFilePath, true);
 			fileSink->set_level(logLevel);
-
-			auto sinks = std::vector<spdlog::sink_ptr>{ consoleSink,fileSink };
-			Logger = std::make_shared<spdlog::logger>("log",sinks.begin(), sinks.end());
-			spdlog::set_default_logger(Logger);
-			spdlog::flush_on(logLevel);
-			spdlog::flush_every(std::chrono::seconds(5));
 		}
 		catch (const spdlog::spdlog_ex& e)
 		{
@@ -154,6 +150,19 @@ bool setLog(ServerConfig& config)
 			return false;
 		}
 	}
+
+	auto sinks = std::vector<spdlog::sink_ptr>();
+	sinks.emplace_back(consoleSink);
+	if (fileSink)
+	{
+		sinks.emplace_back(fileSink);
+	}
+
+	Logger = std::make_shared<spdlog::logger>("log", sinks.begin(), sinks.end());
+	Logger->set_level(logLevel);
+	spdlog::set_default_logger(Logger);
+	spdlog::flush_on(logLevel);
+	spdlog::flush_every(std::chrono::seconds(5));
 
 	return true;
 }

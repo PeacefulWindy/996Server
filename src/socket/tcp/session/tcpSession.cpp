@@ -13,10 +13,10 @@ void TcpSession::send(std::string &data)
 {
 	auto ec = std::error_code();
 	this->mSocket.write_some(asio::buffer(data), ec);
-	if (ec)
-	{
-		this->close();
-	}
+	//if (ec)
+	//{
+	//	this->close();
+	//}
 }
 
 void TcpSession::doRead()
@@ -28,7 +28,7 @@ void TcpSession::onMsg(std::error_code ec, std::size_t length)
 {
 	if (ec)
 	{
-		this->close();
+		/*this->close();*/
 		return;
 	}
 

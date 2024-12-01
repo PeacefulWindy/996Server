@@ -85,8 +85,7 @@ void TcpServerMgr::close(int32_t id, uint64_t fd)
 	}
 
 	auto server = iter->second;
+	server->close(fd);
 
 	this->mLock.unlock();
-
-	server->close(fd);
 }
