@@ -173,13 +173,11 @@ function _P.formatHttpResponse(msg)
         table.insert(headers,string.format("%s:%s","Content-Type","text/plain"))
     end
 
+    local bodyLen=#body
+    table.insert(headers,string.format("%s:%d","Content-length",bodyLen))
+
     if not msg.headers["Connection"] then
         table.insert(headers,string.format("%s:%s","Connection","close"))
-    end
-
-    local bodyLen=#body
-    if bodyLen > 0 then
-        table.insert(headers,string.format("%s:%d","Content-length",bodyLen))
     end
 
     return string.format(_P.responseTemplate,statusCode,_P.StatusCodeStr[statusCode],table.concat(headers,"\r\n"),body)
