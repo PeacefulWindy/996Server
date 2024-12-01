@@ -91,7 +91,7 @@ function _P.parseHttpRequest(msg)
                         local index=it:find("=")
                         if index then
                             local key=it:sub(0,index-1)
-                            local value=it:sub(index,#line)
+                            local value=it:sub(index+1,#line)
                             request.query[key]=value
                         end
                     end 
