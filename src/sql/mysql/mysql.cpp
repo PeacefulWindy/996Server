@@ -135,6 +135,7 @@ int32_t queryMariadb(lua_State* L)
 			case MYSQL_TYPE_LONGLONG:
 				lua_pushinteger(L, std::atoll(row[i]));
 				break;
+			case MYSQL_TYPE_DECIMAL:
 			case MYSQL_TYPE_FLOAT:
 			case MYSQL_TYPE_DOUBLE:
 				lua_pushnumber(L, std::atof(row[i]));
@@ -305,10 +306,14 @@ int32_t execMariadb(lua_State* L)
 			strValue.resize(static_cast<size_t>(field.length) + 1);
 			it.buffer = (void*)strValue.c_str();
 			break;
+		case MYSQL_TYPE_TINY:
+		case MYSQL_TYPE_SHORT:
 		case MYSQL_TYPE_LONG:
+		case MYSQL_TYPE_LONGLONG:
 			it.buffer_length = sizeof(int64_t);
 			it.buffer = &intValue;
 			break;
+		case MYSQL_TYPE_DECIMAL:
 		case MYSQL_TYPE_FLOAT:
 		case MYSQL_TYPE_DOUBLE:
 			it.buffer_length = sizeof(double);
@@ -360,10 +365,13 @@ int32_t execMariadb(lua_State* L)
 			case MYSQL_TYPE_BLOB:
 				lua_pushstring(L, (const char*)result.buffer);
 				break;
+			case MYSQL_TYPE_TINY:
+			case MYSQL_TYPE_SHORT:
 			case MYSQL_TYPE_LONG:
 			case MYSQL_TYPE_LONGLONG:
 				lua_pushinteger(L, *(int64_t*)result.buffer);
 				break;
+			case MYSQL_TYPE_DECIMAL:
 			case MYSQL_TYPE_FLOAT:
 			case MYSQL_TYPE_DOUBLE:
 				lua_pushnumber(L, *(double*)result.buffer);
