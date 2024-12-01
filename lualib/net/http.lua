@@ -60,21 +60,39 @@ function _M.post(url,form,headers)
     return response
 end
 
+_P.LF="\r\n"
+_P.LFLen=#_P.LF
+
 local HttpServer=class("HttpServer")
 local tcp=require "net.tcp"
 
 function _P.parseHttpRequest(msg)
-    local lines=api.split(msg,"%\r%\n")
+    local lines={}
+
+    local startIndex=1
+    while true do
+        local index=msg:find(_P.LF,startIndex)
+        if not index then
+            break
+        end
+
+        table.insert(lines,msg:sub(startIndex,index))
+        startIndex=index+_P.LFLen
+    end
+
+    table.insert(lines,msg:sub(startIndex,#msg))
+
     assert(#lines>1,"invalid request")
 
     local request=
     {
         query={},
         headers={},
-        body={},
     }
 
-    for i=1,#lines-2 do
+    local isBody=false
+    local body={}
+    for i=1,#lines do
         local line=lines[i]
         if i == 1 then
             local data=api.split(line," ")
@@ -97,6 +115,10 @@ function _P.parseHttpRequest(msg)
                     end 
                 end
             end
+        elseif isBody then
+            table.insert(body,line)
+        elseif line == "\r" then
+            isBody=true
         else
             local index=line:find("%: ")
             if index then
@@ -106,6 +128,8 @@ function _P.parseHttpRequest(msg)
             end
         end
     end
+
+    request.body=table.concat(body,"\r\n")
 
     return request
 end
@@ -190,6 +214,7 @@ function HttpServer:ctor()
     self.ptr.onMsgFunc=function(_,fd,msg)
         local ret
         local isOk,request=pcall(_P.parseHttpRequest,msg)
+        
         if not isOk then
             api.error(request)
             ret={status=400}

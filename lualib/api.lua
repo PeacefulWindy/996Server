@@ -90,11 +90,6 @@ end
 ---@param name? string
 ---@param layer? integer
 function api.dumpTable(tb,name,layer)
-    if not tb or type(tb) ~= "table" then
-        print("invalid table!")
-        return
-    end
-
     if not name then
         name=""
     end
@@ -107,6 +102,13 @@ function api.dumpTable(tb,name,layer)
         print("==========",name," Start==========")
     end
 
+    if not tb or type(tb) ~= "table" then
+        print("invalid table!")
+        if layer == 0 then
+            print("==========",name," End==========")
+        end
+        return
+    end
     for k,v in pairs(tb)do
         local spaceTb={}
         for i=1,layer do
@@ -127,6 +129,17 @@ function api.dumpTable(tb,name,layer)
 end
 
 ---@param text string
+---@return string
+function api.toHex(text)
+    local tb={}
+    for i=1,#text do
+        table.insert(tb,string.format("%02X",text:byte(i)))
+    end
+
+    return table.concat(tb," ")
+end
+
+---@param text string
 ---@param sep string
 ---@return table
 function api.split(text, sep)
@@ -135,12 +148,11 @@ function api.split(text, sep)
     end
 
     local t = {}
-    for token in string.gmatch(text, "([^" .. sep .. "]+)") do
-        table.insert(t, token)
+    for it in string.gmatch(text, "([^" .. sep .. "]+)") do
+        table.insert(t, it)
     end
     return t
 end
-
 
 ---@return integer
 function api.time()
