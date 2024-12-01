@@ -69,6 +69,7 @@ function _P.parseHttpRequest(msg)
 
     local request=
     {
+        query={},
         headers={},
         body={},
     }
@@ -91,7 +92,7 @@ function _P.parseHttpRequest(msg)
                         if index then
                             local key=it:sub(0,index-1)
                             local value=it:sub(index,#line)
-                            request.body[key]=value
+                            request.query[key]=value
                         end
                     end 
                 end
