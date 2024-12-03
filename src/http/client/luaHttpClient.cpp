@@ -72,12 +72,12 @@ int32_t httpGet(lua_State* L)
 			msg->session = sessionId;
 			msg->status = response->statusCode;
 			auto& body = response->body;
-			auto bodyLen = body.length();
-			if (msg->data.size() < bodyLen +1)
+			msg->dataLen = body.length();
+			if (msg->data.size() < msg->dataLen +1)
 			{
-				msg->data.resize(bodyLen + 1);
+				msg->data.resize(msg->dataLen + 1);
 			}
-			memcpy(msg->data.data(), body.c_str(), bodyLen);
+			memcpy(msg->data.data(), body.c_str(), msg->dataLen);
 			msg->error = response->errorMsg;
 
 			ServiceMgr::getInst()->send(serviceId, msg);
@@ -147,15 +147,15 @@ int httpPost(lua_State* L)
 			msg->msgType = static_cast<uint32_t>(ServiceMsgType::HttpClient);
 			msg->session = sessionId;
 			msg->status = response->statusCode;
-			auto& body = response->body;
-			auto bodyLen = body.length();
-			if (bodyLen)
+			auto& data = response->body;
+			auto dataLen = data.length();
+			if (dataLen)
 			{
-				if (msg->data.size() < bodyLen + 1)
+				if (msg->data.size() < dataLen + 1)
 				{
-					msg->data.resize(bodyLen + 1);
+					msg->data.resize(dataLen + 1);
 				}
-				memcpy(msg->data.data(), body.c_str(), bodyLen);
+				memcpy(msg->data.data(), data.c_str(), dataLen);
 			}
 
 			msg->error = response->errorMsg;

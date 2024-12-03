@@ -69,7 +69,28 @@ void TcpServer::close(uint64_t fd)
 	this->mLock.unlock();
 }
 
-void TcpServer::send(uint64_t fd, std::string data)
+std::shared_ptr<RemoteInfo> TcpServer::getRemoteInfo(int32_t fd)
+{
+	while (!this->mLock.try_lock())
+	{
+		std::this_thread::sleep_for(std::chrono::milliseconds(10));
+	}
+
+	auto iter = this->mSessions.find(fd);
+	if (iter == this->mSessions.end())
+	{
+		this->mLock.unlock();
+		return nullptr;
+	}
+
+	auto session = iter->second;
+
+	this->mLock.unlock();
+
+	return session->getRemoteInfo();
+}
+
+bool TcpServer::send(uint64_t fd, std::string data)
 {
 	while (!this->mLock.try_lock())
 	{
@@ -80,14 +101,14 @@ void TcpServer::send(uint64_t fd, std::string data)
 	if (iter == this->mSessions.end())
 	{
 		this->mLock.unlock();
-		return;
+		return false;
 	}
 
 	auto session = iter->second;
 
 	this->mLock.unlock();
 
-	session->send(data);
+	return session->send(data);
 }
 
 void TcpServer::setOnConnectFunc(std::function<void(uint64_t)> func)

@@ -21,9 +21,10 @@ int queryService(lua_State* L)
 {
 	auto name = luaL_checkstring(L, 1);
 	auto serviceMgr = ServiceMgr::getInst();
-	serviceMgr->queryService(name);
+	auto id = serviceMgr->queryService(name);
 
-	return 0;
+	lua_pushinteger(L, id);
+	return 1;
 }
 
 int destoryService(lua_State* L)
@@ -40,8 +41,9 @@ int sendService(lua_State* L)
 	auto target = luaL_checkinteger(L, 1);
 	auto msgType = luaL_checkinteger(L, 2);
 	auto session= luaL_checkinteger(L, 3);
-	auto data = luaL_checkstring(L, 4);
-	auto dataLen = luaL_len(L, 4);
+	auto isOk = lua_toboolean(L, 4);
+	auto data = luaL_checkstring(L, 5);
+	auto dataLen = luaL_len(L, 5);
 
 	lua_getglobal(L, "SERVICE_ID");
 	auto serviceId = luaL_checkinteger(L, -1);
@@ -55,6 +57,8 @@ int sendService(lua_State* L)
 	auto serviceMsgPool = ServiceMsgPool::getInst();
 	auto msg = serviceMsgPool->pop();
 	msg->msgType = msgType;
+	msg->dataLen = dataLen;
+	msg->isOk = isOk;
 
 	if (dataLen > 0)
 	{

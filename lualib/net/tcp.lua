@@ -26,17 +26,23 @@ end
 
 ---@param fd integer
 ---@param data string
+---@return boolean
 function Server:send(fd,data)
     if #data == 0 then
-        return
+        return false
     end
 
-    tcpServer.send(self.ptr,fd,data,#data)
+    return tcpServer.send(self.ptr,fd,data)
 end
 
 ---@param fd integer
 function Server:close(fd)
     tcpServer.close(self.ptr,fd)
+end
+
+---@return table
+function Server:getRemoteInfo(fd)
+    return tcpServer.getRemoteInfo(self.ptr,fd)
 end
 
 function Server:onMsg(fd,status,msg)

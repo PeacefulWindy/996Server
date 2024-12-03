@@ -9,14 +9,26 @@ TcpSession::TcpSession(int32_t id, uint64_t fd, asio::ip::tcp::socket socket)
 	this->doRead();
 }
 
-void TcpSession::send(std::string &data)
+bool TcpSession::send(std::string &data)
 {
 	auto ec = std::error_code();
 	this->mSocket.write_some(asio::buffer(data), ec);
-	//if (ec)
-	//{
-	//	this->close();
-	//}
+	if (ec)
+	{
+		this->close();
+		return false;
+	}
+
+	return true;
+}
+
+std::shared_ptr<RemoteInfo> TcpSession::getRemoteInfo()
+{
+	auto remoteInfo = std::make_shared<RemoteInfo>();
+	auto endPoint = this->mSocket.remote_endpoint();
+	remoteInfo->host= endPoint.address().to_string();
+	remoteInfo->port = endPoint.port();
+	return remoteInfo;
 }
 
 void TcpSession::doRead()

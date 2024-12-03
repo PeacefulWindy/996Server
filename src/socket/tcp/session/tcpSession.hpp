@@ -8,7 +8,10 @@ public:
 	TcpSession(int32_t id, uint64_t fd, asio::ip::tcp::socket socket);
 
 public:
-	void send(std::string& data);
+	bool send(std::string& data);
+
+public:
+	std::shared_ptr<RemoteInfo> getRemoteInfo();
 
 private:
 	void doRead();

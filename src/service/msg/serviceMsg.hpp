@@ -24,6 +24,8 @@ public:
 	uint32_t msgType;
 	int32_t status;
 	uint32_t fd;
+	size_t dataLen = 0;
+	bool isOk = false;
 	std::vector<uint8_t> data = std::vector<uint8_t>(4096);
 	std::string error;
 

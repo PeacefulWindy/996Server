@@ -57,7 +57,11 @@ Service::Service(int32_t id, std::string name, std::string src,std::string args)
 
 Service::~Service()
 {
-	lua_close(this->mState);
+	if (this->mState)
+	{
+		lua_close(this->mState);
+		this->mState = nullptr;
+	}
 
 	spdlog::info("service_{}:{} stop.", this->mId, this->mName);
 }
@@ -142,7 +146,7 @@ void Service::poll()
 			lua_pushinteger(this->mState, it->source);
 			lua_setfield(this->mState, -2, "source");
 
-			lua_pushstring(this->mState, reinterpret_cast<const char*>(it->data.data()));
+			lua_pushlstring(this->mState, reinterpret_cast<const char*>(it->data.data()), it->dataLen);
 			lua_setfield(this->mState, -2, "data");
 
 			lua_pushstring(this->mState, it->error.c_str());
@@ -153,6 +157,9 @@ void Service::poll()
 
 			lua_pushinteger(this->mState, it->fd);
 			lua_setfield(this->mState, -2, "fd");
+
+			lua_pushboolean(this->mState, it->isOk);
+			lua_setfield(this->mState, -2, "isOk");
 
 			lua_rawseti(this->mState, -2, index);
 			index++;

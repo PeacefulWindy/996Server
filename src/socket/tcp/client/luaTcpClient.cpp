@@ -57,12 +57,12 @@ int32_t connectTcpClient(lua_State* L)
 				msg->msgType = static_cast<uint32_t>(ServiceMsgType::TcpClient);
 				msg->status = static_cast<uint32_t>(TcpMsgType::Msg);
 				msg->session = id;
-				auto len = msgData.length();
-				if (msg->data.size() < len)
+				msg->dataLen = msgData.length();
+				if (msg->data.size() < msg->dataLen)
 				{
-					msg->data.resize(len + 1);
+					msg->data.resize(msg->dataLen + 1);
 				}
-				memcpy(msg->data.data(), msgData.c_str(), len);
+				memcpy(msg->data.data(), msgData.c_str(), msg->dataLen);
 
 				ServiceMgr::getInst()->send(serviceId, msg);
 			});
@@ -100,8 +100,8 @@ int32_t closeTcpClient(lua_State* L)
 int32_t sendTcpClient(lua_State* L)
 {
 	auto id = luaL_checkinteger(L, 1);
-	auto data = luaL_checkstring(L, 2);
-	auto dataLen = luaL_checkinteger(L, 3);
+	auto dataLen = static_cast<size_t>(luaL_len(L, 2));
+	auto data = luaL_checklstring(L, 2, &dataLen);
 
 	auto tcpClientMgr = TcpClientMgr::getInst();
 	auto tcpClient = tcpClientMgr->getClient(id);

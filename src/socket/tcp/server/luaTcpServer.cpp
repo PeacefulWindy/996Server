@@ -78,12 +78,13 @@ int32_t listenTcpServer(lua_State* L)
 				msg->status = static_cast<uint32_t>(TcpMsgType::Msg);
 				msg->session = id;
 				msg->fd = fd;
-				auto len = msgData.length();
-				if (msg->data.size() < len)
+				msg->dataLen = msgData.length();
+				
+				if (msg->data.size() < msg->dataLen)
 				{
-					msg->data.resize(len + 1);
+					msg->data.resize(msg->dataLen + 1);
 				}
-				memcpy(msg->data.data(), msgData.c_str(), len);
+				memcpy(msg->data.data(), msgData.c_str(), msg->dataLen);
 
 				ServiceMgr::getInst()->send(serviceId, msg);
 			});
@@ -98,18 +99,20 @@ int32_t sendTcpServer(lua_State* L)
 	auto id = luaL_checkinteger(L, 1);
 	auto fd = luaL_checkinteger(L, 2);
 	auto data = luaL_checkstring(L, 3);
-	auto dataLen = luaL_checkinteger(L, 4);
+	auto dataLen = luaL_len(L, 3);
 
 	auto tcpServerMgr = TcpServerMgr::getInst();
 	auto server = tcpServerMgr->getServer(id);
 	if (!server)
 	{
-		return 0;
+		lua_pushboolean(L, false);
+		return 1;
 	}
 
-	server->send(fd, std::string(data, dataLen));
+	auto ret=server->send(fd, std::string(data, dataLen));
+	lua_pushboolean(L, ret);
 
-	return 0;
+	return 1;
 }
 
 int32_t closeTcpServer(lua_State* L)
@@ -127,6 +130,31 @@ int32_t closeTcpServer(lua_State* L)
 	server->close(fd);
 
 	return 0;
+}
+
+int32_t getRemoteInfoTcpServer(lua_State* L)
+{
+	auto id = luaL_checkinteger(L, 1);
+	auto fd = luaL_checkinteger(L, 2);
+
+	auto tcpServerMgr = TcpServerMgr::getInst();
+	auto server = tcpServerMgr->getServer(id);
+	if (!server)
+	{
+		return 0;
+	}
+
+	auto remoteInfo=server->getRemoteInfo(fd);
+
+	lua_newtable(L);
+
+	lua_pushstring(L, remoteInfo->host.c_str());
+	lua_setfield(L, -2, "host");
+
+	lua_pushinteger(L, remoteInfo->port);
+	lua_setfield(L, -2, "port");
+
+	return 1;
 }
 
 void luaRegisterTcpServerAPI(lua_State* state)
@@ -149,6 +177,9 @@ void luaRegisterTcpServerAPI(lua_State* state)
 
 	lua_pushcfunction(state, closeTcpServer);
 	lua_setfield(state, -2, "close");
+
+	lua_pushcfunction(state, getRemoteInfoTcpServer);
+	lua_setfield(state, -2, "getRemoteInfo");
 
 	lua_setglobal(state, "tcpServer");
 }

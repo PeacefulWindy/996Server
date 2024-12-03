@@ -3,6 +3,7 @@
 #include<mutex>
 #include<map>
 #include<memory>
+#include<define.hpp>
 
 constexpr const char* TcpServerDefaultHost = "127.0.0.1";
 
@@ -20,7 +21,10 @@ public:
 	void close(uint64_t fd);
 
 public:
-	void send(uint64_t fd, std::string data);
+	std::shared_ptr<RemoteInfo> getRemoteInfo(int32_t fd);
+
+public:
+	bool send(uint64_t fd, std::string data);
 
 public:
 	void setOnConnectFunc(std::function<void(uint64_t)> func);

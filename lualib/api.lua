@@ -67,7 +67,7 @@ end
 ---@param key string
 ---@param value string
 function api.setEnv(key,value)
-    core.env(key,value)
+    core.setEnv(key,tostring(value))
 end
 
 ---@param tb table
@@ -185,12 +185,12 @@ end
 function api.newService(name,src,isUnique,args)
     if not name then
         log.error("invalid newService name!")
-        return
+        return 0
     end
 
     if not src then
         log.error("invalid newService src!")
-        return
+        return 0
     end
 
     local isUnique=isUnique or false
@@ -207,7 +207,7 @@ end
 
 ---@param id integer
 function api.destroyService(id)
-    core.send(id,api.MsgType.Close,0,"",0)
+    core.send(id,api.MsgType.Close,0,"",false)
 end
 
 ---@param func fun()
@@ -227,20 +227,21 @@ end
 function api.send(msgType,serviceId,...)
     local args={...}
     local data=json.encode(args)
-    core.send(serviceId,msgType,0,data)
+    core.send(serviceId,msgType,0,false,data)
 end
 
 ---@param serviceId integer
 ---@param sessionId integer
----@return ...
-function api.response(serviceId,sessionId,...)
+---@param isOk boolean
+function api.response(serviceId,sessionId,isOk,...)
     local args={...}
     local data=json.encode(args)
-    core.send(serviceId,api.MsgType.LuaResponse,sessionId,data)
+    core.send(serviceId,api.MsgType.LuaResponse,sessionId,isOk,data)
 end
 
 ---@param msgType integer @api.MsgType
 ---@param serviceId integer
+---@return boolean,string|... @false will return err msg,true will return ...
 function api.call(msgType,serviceId,...)
     local sessionId=api.autoSessionId
     api.autoSessionId=api.autoSessionId+1
@@ -253,14 +254,17 @@ function api.call(msgType,serviceId,...)
 
     local args={...}
     local data=json.encode(args)
-    core.send(serviceId,msgType,sessionId,data)
-    local status,msg=coroutine.yield(sessionId)
+    core.send(serviceId,msgType,sessionId,false,data)
+    local status,isOk,ret=coroutine.yield(sessionId)
     if not status then
-        api.error("call failed!\n",debug.traceback())
-        return false
+        return false,ret
     end
 
-    return true,table.unpack(msg)
+    if not isOk then
+        return false,ret
+    end
+    
+    return true,table.unpack(ret)
 end
 
 function api.quit()
@@ -301,7 +305,7 @@ function onPoll(msgs)
         elseif it.msgType == api.MsgType.HttpClient then
             local co=api.httpCoro[it.session]
             if co then
-                local status,err=coroutine.resume(co,{data=it.data,status=it.status,error=it.error})
+                local status,err=coroutine.resume(co,{body=it.data,status=it.status,error=it.error})
                 if not status then
                     api.error(err)
                 end
@@ -320,6 +324,17 @@ function onPoll(msgs)
             local inst=api.tcpClients[it.session]
             if inst then
                 inst:onMsg(it.status,it.data)
+            end
+        elseif it.msgType == api.MsgType.LuaResponse then
+            local coInfo=api.callCoro[it.session]
+            if not coInfo then
+                return
+            end
+        
+            api.callCoro[it.session]=nil
+            local status,err=coroutine.resume(coInfo.co,true,it.isOk,json.decode(it.data))
+            if not status then
+                api.error(err)
             end
         else
             local func=api.protocolRegister[it.msgType]
@@ -353,18 +368,5 @@ function api.timer(time,func)
     api.timers[session]=func
     core.timer(session,time)
 end
-
-api.dispatch(api.MsgType.LuaResponse,function(_,session,...)
-    local coInfo=_P.callCoro[session]
-    if not coInfo then
-        return
-    end
-
-    _P.callCoro[session]=nil
-    local status,err=coroutine.resume(coInfo.co,true,{...})
-    if not status then
-        api.error(err)
-    end
-end)
 
 return api

@@ -8,3 +8,9 @@ enum class TcpMsgType
 	Close = 2,
 	Msg = 3,
 };
+
+struct RemoteInfo
+{
+	std::string host;
+	uint16_t port;
+};

@@ -1,0 +1,13 @@
+Config=
+{
+    luaPath="lualib/?.lua;./?.lua",
+    cPath="libs/?.so;libs/?.dll",
+    start="example/clusterWeb.lua",
+    thread=2,
+    servicePath=
+    {
+        "example/services",
+        "services"
+    },
+    args={},
+}
