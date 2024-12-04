@@ -37,3 +37,6 @@
 .vs/
 out/
 log/
+build/
+Debug/
+Release/

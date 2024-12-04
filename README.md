@@ -23,20 +23,21 @@
 - sha3
 - rsa
 
-其它：
-- timer(定时器)
-
 文档
 ---
 待补充
 
-编译
+编译(以996Server根目录为准)
 ---
-Windows：支持C++20的编译器(VS2022 17.8+)
+Windows：需安装支持C++20的编译器(VS2022 17.8+)，CMake,Git
 ```
-在VS2022空项目中，文件->打开->CMake->选择996Server文件夹里的CMakeLists.txt
+shell\buildDebug.bat或shell\buildRelease.bat
+PS：也可以用VS2022打开CMakeLists.txt
 ```
-Linux：待补充
+Linux：
+```
+./shell/buildDebug.sh或./shell/buildRelease.sh
+```
 
 使用
 ---
