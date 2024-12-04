@@ -51,7 +51,7 @@ int32_t listenTcpServer(lua_State* L)
 		lua_getglobal(L, "SERVICE_ID");
 		auto serviceId = luaL_checkinteger(L, -1);
 
-		tcpServer->setOnConnectFunc([id, serviceId](uint32_t fd)
+		tcpServer->setOnConnectFunc([id, serviceId](uint64_t fd)
 			{
 				auto msg = ServiceMsgPool::getInst()->pop();
 				msg->msgType = static_cast<uint32_t>(ServiceMsgType::TcpServer);
@@ -61,7 +61,7 @@ int32_t listenTcpServer(lua_State* L)
 				ServiceMgr::getInst()->send(serviceId, msg);
 			});
 
-		tcpServer->setOnCloseFunc([id, serviceId](uint32_t fd)
+		tcpServer->setOnCloseFunc([id, serviceId](uint64_t fd)
 			{
 				auto msg = ServiceMsgPool::getInst()->pop();
 				msg->msgType = static_cast<uint32_t>(ServiceMsgType::TcpServer);
@@ -71,7 +71,7 @@ int32_t listenTcpServer(lua_State* L)
 				ServiceMgr::getInst()->send(serviceId, msg);
 			});
 
-		tcpServer->setOnMsgFunc([id, serviceId](uint32_t fd, const std::string msgData)
+		tcpServer->setOnMsgFunc([id, serviceId](uint64_t fd, const std::string &msgData)
 			{
 				auto msg = ServiceMsgPool::getInst()->pop();
 				msg->msgType = static_cast<uint32_t>(ServiceMsgType::TcpServer);

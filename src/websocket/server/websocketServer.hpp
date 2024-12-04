@@ -38,7 +38,7 @@ private:
 	ix::WebSocketServer* mServer = nullptr;
 	uint64_t mAutoId = 1;
 	std::map<uint64_t, ix::WebSocket*> mSessions;
-	std::map<ix::WebSocket*, uint32_t> mReverseSessions;
+	std::map<ix::WebSocket*, uint64_t> mReverseSessions;
 
 	std::function<void(uint64_t)> mOnConnetionFunc;
 	std::function<void(uint64_t)> mOnCloseFunc;

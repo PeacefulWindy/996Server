@@ -235,25 +235,7 @@ void ServiceMgr::pushFreeServiceId(int32_t value)
 	this->mFreeServiceLock.unlock();
 }
 
-//ServiceMgr::~ServiceMgr()
-//{
-	//while (!this->mServiceLock.try_lock())
-	//{
-	//	std::this_thread::sleep_for(std::chrono::milliseconds(10));
-	//}
-
-	//auto workerMgr = WorkerMgr::getInst();
-	//for (auto it = this->mServices.begin(); it != this->mServices.end(); ++it)
-	//{
-	//	auto worker = workerMgr->getServiceWorker(it->second);
-	//	if (worker)
-	//	{
-	//		worker->setService(nullptr);
-	//	}
-
-	//	delete it->second;
-	//}
-
-	//this->mServices.clear();
-	//this->mServiceLock.unlock();
-//}
+ServiceMgr::~ServiceMgr()
+{
+	this->poll();
+}

@@ -282,8 +282,8 @@ int main(int arg,char * argv[])
 
 	serviceMgr->closeAllService();
 
-	ServiceMgr::destroy();
 	WorkerMgr::destroy();
+	ServiceMgr::destroy();
 
 	ix::uninitNetSystem();
 

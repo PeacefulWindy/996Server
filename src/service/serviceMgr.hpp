@@ -35,6 +35,9 @@ public:
 	void pushFreeServiceId(int32_t value);
 
 private:
+	~ServiceMgr();
+
+private:
 	static ServiceMgr* mInst;
 	std::map<int32_t,Service*> mServices;
 	int32_t mAutoId = 1;
