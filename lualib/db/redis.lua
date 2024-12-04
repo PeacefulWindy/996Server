@@ -210,4 +210,8 @@ function _M:hkeys(key)
     return redis.cmd(self.ptr,cmd)
 end
 
+function _M:flushall()
+    redis.cmd(self.ptr,"flushall")
+end
+
 return _M
