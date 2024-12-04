@@ -69,6 +69,25 @@ void WebsocketServer::close()
 	}
 }
 
+void WebsocketServer::close(uint64_t fd)
+{
+	while (!this->mLock.try_lock())
+	{
+		std::this_thread::sleep_for(std::chrono::milliseconds(10));
+	}
+
+	auto iter=this->mSessions.find(fd);
+	if (iter == this->mSessions.end())
+	{
+		this->mLock.unlock();
+		return;
+	}
+	auto socket = iter->second;
+	this->mLock.unlock();
+
+	socket->close();
+}
+
 void WebsocketServer::setOnConnectFunc(std::function<void(uint64_t)> func)
 {
 	this->mOnConnetionFunc = func;

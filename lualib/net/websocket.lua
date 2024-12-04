@@ -36,6 +36,11 @@ function Server:send(fd,data)
     websocketServer.send(self.ptr,fd,data)
 end
 
+---@param fd integer
+function Server:close(fd)
+    websocketServer.close(self.ptr,fd)
+end
+
 function Server:onMsg(fd,status,msg)
     if status == WebsocketStatus.Open then
         if self.onConnectFunc then

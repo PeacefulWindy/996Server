@@ -123,6 +123,23 @@ int32_t sendWebsocketServer(lua_State* L)
 	return 0;
 }
 
+int32_t closeWebsocketServer(lua_State* L)
+{
+	auto id = luaL_checkinteger(L, 1);
+	auto fd = luaL_checkinteger(L, 2);
+
+	auto websocketMgr = WebsocketServerMgr::getInst();
+	auto server = websocketMgr->getServer(id);
+	if (!server)
+	{
+		return 0;
+	}
+
+	server->close(fd);
+
+	return 0;
+}
+
 void luaRegisterWebsocketServerAPI(lua_State* state)
 {
 	lua_settop(state, 0);
@@ -140,6 +157,9 @@ void luaRegisterWebsocketServerAPI(lua_State* state)
 
 	lua_pushcfunction(state, sendWebsocketServer);
 	lua_setfield(state, -2, "send");
+
+	lua_pushcfunction(state, closeWebsocketServer);
+	lua_setfield(state, -2, "close");
 
 	lua_setglobal(state, "websocketServer");
 }

@@ -25,6 +25,7 @@ public:
 
 public:
 	void close();
+	void close(uint64_t fd);
 
 public:
 	void setOnConnectFunc(std::function<void(uint64_t)> func);
