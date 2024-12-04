@@ -24,13 +24,14 @@
 - rsa
 
 - timer
+
 文档
 ---
 待补充
 
 编译(以996Server根目录为准)
 ---
-Windows：需安装支持C++20的编译器(VS2022 17.8+)，CMake,Git
+Windows：需安装支持C++20的编译器(VS2022 17.8+),CMake,Git
 ```
 shell\buildDebug.bat或shell\buildRelease.bat
 PS：也可以用VS2022打开CMakeLists.txt
