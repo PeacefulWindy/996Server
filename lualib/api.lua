@@ -207,7 +207,7 @@ end
 
 ---@param id integer
 function api.destroyService(id)
-    core.send(id,api.MsgType.Close,0,"",false)
+    core.send(id,api.MsgType.Close,0,false,"")
 end
 
 ---@param func fun()
