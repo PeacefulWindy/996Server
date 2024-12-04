@@ -194,7 +194,14 @@ int main(int arg,char * argv[])
 			return FALSE;
 		}, true);
 #else
-
+	signal(SIGINT, [](int signal)
+		{
+			if (signal == SIGTERM || signal == SIGINT)
+			{
+				std::cout << "Caught Ctrl+C or Console Close Event!" << std::endl;
+				luaExit();
+			}
+		});
 #endif
 	auto configPath = argv[1];
 	auto L = luaL_newstate();

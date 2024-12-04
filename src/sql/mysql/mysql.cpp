@@ -1,7 +1,7 @@
 #include<lua/luaApi.hpp>
 #include<mysql/mysql.h>
 #include <spdlog/spdlog.h>
-#include<format>
+#include <fmt/core.h>
 
 int32_t newMariadb(lua_State* L)
 {
@@ -179,7 +179,7 @@ int32_t execMariadb(lua_State* L)
 	if (argNum > top - 1)
 	{
 		lua_newtable(L);
-		auto err = std::format("invalid args,need args num {},but get args num {}", argNum, top - 1);
+		auto err = fmt::format("invalid args,need args num {},but get args num {}", argNum, top-1);
 		lua_pushboolean(L, false);
 		lua_setfield(L, -2, "badresult");
 		lua_pushstring(L, err.c_str());

@@ -1,6 +1,7 @@
 #include<lua/luaApi.hpp>
 #include<config/configMgr.hpp>
 #include <stdexcept>
+#include<vector>
 
 int32_t toInt(const std::string& str)
 {

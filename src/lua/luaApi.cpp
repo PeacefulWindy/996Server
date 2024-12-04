@@ -6,6 +6,7 @@
 #include<service/msg/serviceMsg.hpp>
 #include<service/msg/serviceMsgPool.hpp>
 #include<service/serviceMgr.hpp>
+#include<thread>
 
 extern asio::io_context IoContext;
 

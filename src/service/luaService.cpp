@@ -2,6 +2,7 @@
 #include<service/serviceMgr.hpp>
 #include<service/service.hpp>
 #include<service/msg/serviceMsgPool.hpp>
+#include<cstring>
 
 int newService(lua_State * L)
 {

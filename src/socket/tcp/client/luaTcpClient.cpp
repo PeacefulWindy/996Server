@@ -1,8 +1,8 @@
 #include<lua/luaApi.hpp>
 #include <service/serviceMgr.hpp>
 #include <service/msg/serviceMsgPool.hpp>
-#include<socket/tcp/Client/tcpClientMgr.hpp>
-#include<socket/tcp/Client/tcpClient.hpp>
+#include<socket/tcp/client/tcpClientMgr.hpp>
+#include<socket/tcp/client/tcpClient.hpp>
 #include<define.hpp>
 
 int32_t newTcpClient(lua_State* L)

@@ -3,6 +3,7 @@
 #include<websocket/server/websocketServer.hpp>
 #include <service/serviceMgr.hpp>
 #include <service/msg/serviceMsgPool.hpp>
+#include<cstring>
 
 int32_t newWebsocketServer(lua_State* L)
 {

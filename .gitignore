@@ -37,3 +37,7 @@
 .vs/
 out/
 log/
+build/
+Debug/
+Release/
+996Server
