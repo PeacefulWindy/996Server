@@ -18,6 +18,7 @@ public:
 	Service* getService(int32_t id);
 	int32_t queryService(std::string name);
 	void destoryService(int32_t id);
+	void closeAllService();
 	
 public:
 	std::vector<std::string>& getServicePath();
@@ -32,9 +33,6 @@ public:
 public:
 	int32_t getFreeServiceId();
 	void pushFreeServiceId(int32_t value);
-
-private:
-	virtual ~ServiceMgr();
 
 private:
 	static ServiceMgr* mInst;

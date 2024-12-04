@@ -61,7 +61,7 @@ int32_t listenWebsocketServer(lua_State* L)
 		lua_getglobal(L, "SERVICE_ID");
 		auto serviceId = luaL_checkinteger(L, -1);
 
-		websocket->setOnConnectFunc([id,serviceId](uint32_t fd)
+		websocket->setOnConnectFunc([id,serviceId](uint64_t fd)
 			{
 				auto msg=ServiceMsgPool::getInst()->pop();
 				msg->msgType = static_cast<uint32_t>(ServiceMsgType::WebsocketServer);
@@ -71,7 +71,7 @@ int32_t listenWebsocketServer(lua_State* L)
 				ServiceMgr::getInst()->send(serviceId, msg);
 			});
 
-		websocket->setOnMsgFunc([id, serviceId](uint32_t fd,const std::string msgData)
+		websocket->setOnMsgFunc([id, serviceId](uint64_t fd,const std::string &msgData)
 			{
 				auto msg = ServiceMsgPool::getInst()->pop();
 				msg->msgType = static_cast<uint32_t>(ServiceMsgType::WebsocketServer);
@@ -88,7 +88,7 @@ int32_t listenWebsocketServer(lua_State* L)
 				ServiceMgr::getInst()->send(serviceId, msg);
 			});
 
-		websocket->setOnCloseFunc([id, serviceId](uint32_t fd)
+		websocket->setOnCloseFunc([id, serviceId](uint64_t fd)
 			{
 				auto msg = ServiceMsgPool::getInst()->pop();
 				msg->msgType = static_cast<uint32_t>(ServiceMsgType::WebsocketServer);

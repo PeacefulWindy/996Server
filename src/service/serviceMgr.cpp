@@ -143,6 +143,27 @@ void ServiceMgr::destoryService(int32_t id)
 	this->mPreDestroyServiceLock.unlock();
 }
 
+void ServiceMgr::closeAllService()
+{
+	while (!this->mServiceLock.try_lock())
+	{
+		std::this_thread::sleep_for(std::chrono::milliseconds(100));
+	}
+
+	auto ids = std::vector<int32_t>();
+	for (auto it = this->mServices.begin(); it != this->mServices.end(); ++it)
+	{
+		ids.emplace_back(it->first);
+	}
+
+	this->mServiceLock.unlock();
+
+	for (auto it = ids.begin(); it != ids.end(); ++it)
+	{
+		this->destoryService(*it);
+	}
+}
+
 void ServiceMgr::poll()
 {
 	while (!this->mPreDestroyServiceLock.try_lock())
@@ -214,26 +235,25 @@ void ServiceMgr::pushFreeServiceId(int32_t value)
 	this->mFreeServiceLock.unlock();
 }
 
-ServiceMgr::~ServiceMgr()
-{
-	while (!this->mServiceLock.try_lock())
-	{
-		std::this_thread::sleep_for(std::chrono::milliseconds(10));
-	}
+//ServiceMgr::~ServiceMgr()
+//{
+	//while (!this->mServiceLock.try_lock())
+	//{
+	//	std::this_thread::sleep_for(std::chrono::milliseconds(10));
+	//}
 
-	auto workerMgr = WorkerMgr::getInst();
-	for (auto it = this->mServices.begin(); it != this->mServices.end(); ++it)
-	{
-		auto worker = workerMgr->getServiceWorker(it->second);
-		if (worker)
-		{
-			worker->setService(nullptr);
-		}
+	//auto workerMgr = WorkerMgr::getInst();
+	//for (auto it = this->mServices.begin(); it != this->mServices.end(); ++it)
+	//{
+	//	auto worker = workerMgr->getServiceWorker(it->second);
+	//	if (worker)
+	//	{
+	//		worker->setService(nullptr);
+	//	}
 
-		delete it->second;
-	}
+	//	delete it->second;
+	//}
 
-	this->mServices.clear();
-
-	this->mServiceLock.unlock();
-}
+	//this->mServices.clear();
+	//this->mServiceLock.unlock();
+//}
