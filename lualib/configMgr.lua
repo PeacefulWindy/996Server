@@ -1,6 +1,8 @@
 local _M={}
+local api=require "api"
 
 ---@param dirPath string
+---@return boolean
 function _M.init(dirPath)
     local configPaths=fs.listdir(dirPath)
     
@@ -16,6 +18,10 @@ function _M.init(dirPath)
 
         local filePath=string.format("%s/%s",dirPath,fileName)
         local file=io.open(filePath,"r")
+        if not file then
+            api.error(string.format("%s load failed!",filePath))
+            return false
+        end
         local fileData=file:read("*a")
         local config=json.decode(fileData)
         for _,datas in pairs(config)do
@@ -30,9 +36,12 @@ function _M.init(dirPath)
         end
 
         configs[configName]=config
+        print(filePath,"load!")
     end
 
     config.init(configs)
+
+    return true
 end
 
 ---@param configName string
