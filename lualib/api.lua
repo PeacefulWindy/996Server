@@ -134,17 +134,31 @@ end
 
 ---@param text string
 ---@return string
-function api.toHex(text,space)
+function api.fromHex(text,space)
     if not space then
         space=""
     end
 
     local tb={}
+    for i = 1, #text, 2+#space do
+        local byte = tonumber(text:sub(i, i + 1), 16)
+        if byte then
+            table.insert(tb,string.char(byte))
+        end
+    end
+
+    return table.concat(tb,"")
+end
+
+---@param text string
+---@return string
+function api.toHex(text)
+    local tb={}
     for i=1,#text do
         table.insert(tb,string.format("%02X",text:byte(i)))
     end
 
-    return table.concat(tb,space)
+    return table.concat(tb," ")
 end
 
 ---@param text string
