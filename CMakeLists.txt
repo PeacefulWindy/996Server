@@ -59,19 +59,23 @@ find_package(asio CONFIG REQUIRED)
 find_package(hiredis CONFIG REQUIRED)
 find_package(stduuid CONFIG REQUIRED)
 
+list(APPEND libs fmt::fmt)
+list(APPEND libs cryptopp::cryptopp)
+list(APPEND libs lua)
+list(APPEND libs cjson)
+list(APPEND libs unofficial::libmariadb)
+list(APPEND libs protobuf::libprotoc)
+list(APPEND libs protobuf::libprotobuf)
+list(APPEND libs protobuf::libprotobuf-lite)
+list(APPEND libs ixwebsocket::ixwebsocket)
+list(APPEND libs asio::asio)
+list(APPEND libs hiredis::hiredis)
+list(APPEND libs stduuid)
+
+if(MSVC)
+list(APPEND libs bcrypt)
+list(APPEND libs dbghelp)
+endif()
+
 add_executable(${PROJECT_NAME} ${srcs} ${LUA_INCLUDE_DIR})
-target_link_libraries(${PROJECT_NAME} PRIVATE 
-    fmt::fmt
-    cryptopp::cryptopp 
-    lua 
-    cjson 
-    unofficial::libmariadb 
-    protobuf::libprotoc 
-    protobuf::libprotobuf
-    protobuf::libprotobuf-lite
-    ixwebsocket::ixwebsocket
-    bcrypt
-    asio::asio
-    hiredis::hiredis
-    stduuid
-)
+target_link_libraries(${PROJECT_NAME} PRIVATE ${libs})

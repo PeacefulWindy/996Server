@@ -169,6 +169,55 @@ bool setLog(ServerConfig& config)
 
 asio::io_context IoContext;
 
+#ifdef _DEBUG
+#include<dbghelp.h>
+void printStackTrace(CONTEXT* context) 
+{
+	auto stackFrame = STACKFRAME64();
+	memset(&stackFrame, 0, sizeof(STACKFRAME64));
+
+#ifdef _M_IX86
+	stackFrame.AddrPC.Offset = context->Eip;
+	stackFrame.AddrPC.Mode = AddrModeFlat;
+	stackFrame.AddrFrame.Offset = context->EbP;
+	stackFrame.AddrFrame.Mode = AddrModeFlat;
+	stackFrame.AddrStack.Offset = context->Esp;
+	stackFrame.AddrStack.Mode = AddrModeFlat;
+#elif _M_X64
+	stackFrame.AddrPC.Offset = context->Rip;
+	stackFrame.AddrPC.Mode = AddrModeFlat;
+	stackFrame.AddrFrame.Offset = context->Rsp;
+	stackFrame.AddrFrame.Mode = AddrModeFlat;
+	stackFrame.AddrStack.Offset = context->Rbp;
+	stackFrame.AddrStack.Mode = AddrModeFlat;
+#endif
+
+	auto process = GetCurrentProcess();
+	SymInitialize(process, nullptr, true);
+
+	while (StackWalk64(IMAGE_FILE_MACHINE_AMD64,process,GetCurrentThread(),&stackFrame,context, nullptr,SymFunctionTableAccess64,SymGetModuleBase64,nullptr))
+	{
+		auto address = stackFrame.AddrPC.Offset;
+
+		auto buffer = std::vector<char>(sizeof(SYMBOL_INFO) + MAX_SYM_NAME * sizeof(TCHAR));
+		auto symbol = (PSYMBOL_INFO)buffer.data();
+		symbol->SizeOfStruct = sizeof(SYMBOL_INFO);
+		symbol->MaxNameLen = MAX_SYM_NAME;
+
+		if (SymFromAddr(process, address, 0, symbol)) 
+		{
+			spdlog::error("Function:{} - Address:{:x}",symbol->Name,symbol->Address);
+		}
+		else 
+		{
+			spdlog::error("Address: {:x}",address);
+		}
+	}
+
+	SymCleanup(process);
+}
+#endif
+
 int main(int arg,char * argv[])
 {
 	ServiceMsgPool::newInst(10);
@@ -193,6 +242,14 @@ int main(int arg,char * argv[])
 
 			return FALSE;
 		}, true);
+
+	#ifdef _DEBUG
+	SetUnhandledExceptionFilter([](EXCEPTION_POINTERS* exceptionInfo)->long
+		{
+			printStackTrace(exceptionInfo->ContextRecord);
+			return EXCEPTION_EXECUTE_HANDLER;
+		});
+	#endif
 #else
 	signal(SIGINT, [](int signal)
 		{
