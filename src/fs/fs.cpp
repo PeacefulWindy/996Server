@@ -36,6 +36,7 @@ int32_t listdir(lua_State* L)
 			auto filePath = it.path().filename().string();
 			lua_pushstring(L, filePath.c_str());
 			lua_rawseti(L, -2, index);
+			index = index + 1;
 		}
 	}
 	
