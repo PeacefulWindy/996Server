@@ -15,28 +15,31 @@ function _M.init(dirPath)
         else
             configName=fileName
         end
-
-        local filePath=string.format("%s/%s",dirPath,fileName)
-        local file=io.open(filePath,"r")
-        if not file then
-            api.error(string.format("%s load failed!",filePath))
-            return false
-        end
-        local fileData=file:read("*a")
-        local config=json.decode(fileData)
-        for _,datas in pairs(config)do
-            for k,v in pairs(datas)do
-                if type(v) == "table" then
-                    datas[k]=
-                    {
-                        data=json.encode(v)
-                    }
+        
+        if configName ~= "init" then
+            local filePath=string.format("%s/%s",dirPath,fileName)
+            local file=io.open(filePath,"r")
+            if not file then
+                api.error(string.format("%s load failed!",filePath))
+                return false
+            end
+            
+            local fileData=file:read("*a")
+            local config=json.decode(fileData)
+            for _,datas in pairs(config)do
+                for k,v in pairs(datas)do
+                    if type(v) == "table" then
+                        datas[k]=
+                        {
+                            data=json.encode(v)
+                        }
+                    end
                 end
             end
+    
+            configs[configName]=config
+            print(filePath,"load!")
         end
-
-        configs[configName]=config
-        print(filePath,"load!")
     end
 
     config.init(configs)
