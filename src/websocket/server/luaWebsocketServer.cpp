@@ -79,12 +79,12 @@ int32_t listenWebsocketServer(lua_State* L)
 				msg->status = static_cast<uint32_t>(WebsocketMsgType::Msg);
 				msg->session = id;
 				msg->fd = fd;
-				auto len = msgData.length();
-				if (msg->data.size() < len)
+				msg->dataLen = msgData.length();
+				if (msg->data.size() < msg->dataLen)
 				{
-					msg->data.resize(len + 1);
+					msg->data.resize(msg->dataLen + 1);
 				}
-				memcpy(msg->data.data(), msgData.c_str(), len);
+				memcpy(msg->data.data(), msgData.c_str(), msg->dataLen);
 
 				ServiceMgr::getInst()->send(serviceId, msg);
 			});
