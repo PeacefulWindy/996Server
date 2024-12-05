@@ -1,6 +1,7 @@
 #include<lua/luaApi.hpp>
 #include<cjson/cJSON.h>
 #include <string>
+#include<spdlog/spdlog.h>
 
 void fetchCreateLuaTable(lua_State* state, cJSON* node)
 {
@@ -45,6 +46,12 @@ void fetchCreateLuaTable(lua_State* state, cJSON* node)
 		case cJSON_False:
 			lua_pushboolean(state, false);
 			break;
+		case cJSON_NULL:
+			lua_pushnil(state);
+			break;
+		default:
+			spdlog::error("unsupport json type:{}", childNode->type);
+			continue;
 		}
 
 		if (childNode->string)
