@@ -280,49 +280,19 @@ int32_t execMariadb(lua_State* L)
 	auto fields = mysql_fetch_fields(res);
 
 	auto results = std::vector<MYSQL_BIND>(fieldCount);
-	auto strResults = std::vector<std::string>(fieldCount);
-	auto intResults = std::vector<int64_t>(fieldCount);
-	auto doubleResults = std::vector<double>(fieldCount);
+	auto dataResults = std::vector<std::vector<int8_t>>(fieldCount);
 	auto isNullResults = std::vector<my_bool>(fieldCount);
-	auto lenResults = std::vector<unsigned long>(fieldCount);
 
 	for (auto i = 0; i < fieldCount; i++)
 	{
 		auto field = fields[i];
 		auto& it = results[i];
+		auto& value = dataResults[i];
+		auto len = field.length;
+		value.resize(static_cast<size_t>(len) + 1);
+		it.buffer_length = len;
+		it.buffer = (void*)value.data();
 		it.is_null = &isNullResults[i];
-		it.length = &lenResults[i];
-
-		auto& strValue = strResults[i];
-		auto& intValue = intResults[i];
-		auto& doubleValue = doubleResults[i];
-
-		switch (field.type)
-		{
-		case MYSQL_TYPE_STRING:
-		case MYSQL_TYPE_VAR_STRING:
-		case MYSQL_TYPE_BLOB:
-			it.buffer_length = field.length;
-			strValue.resize(static_cast<size_t>(field.length) + 1);
-			it.buffer = (void*)strValue.c_str();
-			break;
-		case MYSQL_TYPE_TINY:
-		case MYSQL_TYPE_SHORT:
-		case MYSQL_TYPE_LONG:
-		case MYSQL_TYPE_LONGLONG:
-			it.buffer_length = sizeof(int64_t);
-			it.buffer = &intValue;
-			break;
-		case MYSQL_TYPE_DECIMAL:
-		case MYSQL_TYPE_FLOAT:
-		case MYSQL_TYPE_DOUBLE:
-			it.buffer_length = sizeof(double);
-			it.buffer = &doubleValue;
-			break;
-		default:
-			spdlog::error("mysql not support type:{}", static_cast<size_t>(field.type));
-			break;
-		}
 	}
 
 	if (mysql_stmt_bind_result(stmt, results.data()))
@@ -358,23 +328,24 @@ int32_t execMariadb(lua_State* L)
 				continue;
 			}
 
+			auto value = (const char*)result.buffer;
+
 			switch (field.type)
 			{
 			case MYSQL_TYPE_STRING:
 			case MYSQL_TYPE_VAR_STRING:
 			case MYSQL_TYPE_BLOB:
-				lua_pushstring(L, (const char*)result.buffer);
+				lua_pushstring(L, value);
 				break;
 			case MYSQL_TYPE_TINY:
 			case MYSQL_TYPE_SHORT:
 			case MYSQL_TYPE_LONG:
 			case MYSQL_TYPE_LONGLONG:
-				lua_pushinteger(L, *(int64_t*)result.buffer);
+				lua_pushinteger(L, std::atoll(value));
 				break;
-			case MYSQL_TYPE_DECIMAL:
 			case MYSQL_TYPE_FLOAT:
 			case MYSQL_TYPE_DOUBLE:
-				lua_pushnumber(L, *(double*)result.buffer);
+				lua_pushnumber(L, std::atof(value));
 				break;
 			default:
 				spdlog::error("mysql not support type:{}", static_cast<size_t>(field.type));
