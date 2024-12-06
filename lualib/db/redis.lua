@@ -154,7 +154,7 @@ end
 
 ---@param key string
 ---@param field string
----@return string|integer|number|boolean
+---@return table
 function _M:hget(key,field)
     local cmd=string.format("hget %s %s",key,field)
     local ret=redis.cmd(self.ptr,cmd)
@@ -169,7 +169,21 @@ end
 ---@return table
 function _M:hgetall(key)
     local cmd=string.format("hgetall %s",key)
-    return redis.cmd(self.ptr,cmd)
+    local ret=redis.cmd(self.ptr,cmd)
+
+    local tb={}
+    for i=1,#ret,4 do
+        local key=ret[i+1]
+        local value=ret[i+3]
+        local numberValue=tonumber(value)
+        if numberValue then
+            tb[key]=numberValue
+        else
+            tb[key]=value
+        end
+    end
+
+    return tb
 end
 ---@param key string
 ---@param field string
