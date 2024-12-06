@@ -55,7 +55,7 @@ int32_t listenTcpServer(lua_State* L)
 			{
 				auto msg = ServiceMsgPool::getInst()->pop();
 				msg->msgType = static_cast<uint32_t>(ServiceMsgType::TcpServer);
-				msg->status = static_cast<uint32_t>(TcpMsgType::Open);
+				msg->status = static_cast<uint32_t>(TcpMsgType::Connect);
 				msg->session = id;
 				msg->fd = fd;
 				ServiceMgr::getInst()->send(serviceId, msg);
@@ -98,8 +98,8 @@ int32_t sendTcpServer(lua_State* L)
 {
 	auto id = luaL_checkinteger(L, 1);
 	auto fd = luaL_checkinteger(L, 2);
-	auto data = luaL_checkstring(L, 3);
-	auto dataLen = luaL_len(L, 3);
+	auto dataLen = static_cast<size_t>(luaL_len(L, 3));
+	auto data = luaL_checklstring(L, 3, &dataLen);
 
 	auto tcpServerMgr = TcpServerMgr::getInst();
 	auto server = tcpServerMgr->getServer(id);

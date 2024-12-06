@@ -2,8 +2,8 @@ Config=
 {
     luaPath="lualib/?.lua;./?.lua",
     cPath="libs/?.so;libs/?.dll",
-    start="example/clusterReceiver.lua",
-    thread=2,
+    start="example/clusterBoot.lua",
+    thread=3,
     servicePath=
     {
         "example/services",
@@ -11,6 +11,8 @@ Config=
     },
     args=
     {
-        1
+        "main",
+        "clusterReceiver.lua",
+        1,
     },
 }

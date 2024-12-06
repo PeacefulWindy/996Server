@@ -240,12 +240,11 @@ function api.dispatch(type,func)
     api.protocolRegister[type]=func
 end
 
----@param msgType integer @api.MsgType
 ---@param serviceId integer
-function api.send(msgType,serviceId,...)
+function api.send(serviceId,...)
     local args={...}
     local data=json.encode(args)
-    core.send(serviceId,msgType,0,false,data)
+    core.send(serviceId,api.MsgType.Lua,0,false,data)
 end
 
 ---@param serviceId integer
@@ -257,10 +256,9 @@ function api.response(serviceId,sessionId,isOk,...)
     core.send(serviceId,api.MsgType.LuaResponse,sessionId,isOk,data)
 end
 
----@param msgType integer @api.MsgType
 ---@param serviceId integer
 ---@return boolean,string|... @false will return err msg,true will return ...
-function api.call(msgType,serviceId,...)
+function api.call(serviceId,...)
     local sessionId=api.autoSessionId
     api.autoSessionId=api.autoSessionId+1
     local co=coroutine.running()
@@ -272,7 +270,7 @@ function api.call(msgType,serviceId,...)
 
     local args={...}
     local data=json.encode(args)
-    core.send(serviceId,msgType,sessionId,false,data)
+    core.send(serviceId,api.MsgType.Lua,sessionId,false,data)
     local status,isOk,ret=coroutine.yield(sessionId)
     if not status then
         return false,ret
@@ -341,7 +339,7 @@ function onPoll(msgs)
         elseif it.msgType == api.MsgType.TcpClient then
             local inst=api.tcpClients[it.session]
             if inst then
-                inst:onMsg(it.status,it.data)
+                inst:onMsg(it.status,it.data,it.error)
             end
         elseif it.msgType == api.MsgType.LuaResponse then
             local coInfo=api.callCoro[it.session]
@@ -358,6 +356,8 @@ function onPoll(msgs)
             local func=api.protocolRegister[it.msgType]
             if func then
                 func(it.source,it.session,table.unpack(json.decode(it.data)))
+            else
+                api.error(string.format("not register msgType:%d",it.msgType))
             end
         end
     end

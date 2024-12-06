@@ -50,6 +50,12 @@ size_t WorkerMgr::useWorker()
 	}
 
 	auto iter = this->mFreeWorkers.begin();
+	if (iter == this->mFreeWorkers.end())
+	{
+		this->mWorkerLock.unlock();
+		return 0;
+	}
+
 	auto id = iter->first;
 	this->mFreeWorkers.erase(iter);
 	this->mWorkerLock.unlock();

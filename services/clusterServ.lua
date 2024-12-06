@@ -20,7 +20,9 @@ function _P.sendResponse(fd,toServId,session,isOk,msg)
     end
     local dataLen=#msg
     local respPackData=string.pack(string.format("IIIIc%d",dataLen),dataLen,toServId,session,isOk,msg)
-    tcpServer:send(fd,respPackData)
+    if not tcpServer:send(fd,respPackData) then
+        api.error("send failed!data:",msg)
+    end
 end
 
 function _P.onMsg(_,fd,msg)
@@ -38,10 +40,10 @@ function _P.onMsg(_,fd,msg)
     end
 
     if session == 0 then
-        api.send(api.MsgType.Lua,serviceId,table.unpack(reqData))
+        api.send(serviceId,table.unpack(reqData))
     else
         api.async(function()
-            local ret=table.pack(api.call(api.MsgType.Lua,serviceId,table.unpack(reqData)))
+            local ret=table.pack(api.call(serviceId,table.unpack(reqData)))
             local isOk=ret[1]
             table.remove(ret,1)
             ret["n"]=nil
@@ -52,13 +54,13 @@ function _P.onMsg(_,fd,msg)
 end
 
 function _P.onClose(_,fd)
-    local remoteInfo=tcpServer:getRemoteInfo(fd)
-    api.info(string.format("fd:[%d] %s:%d disconnect",fd,remoteInfo.host,remoteInfo.port))
+    api.info(string.format("fd:%d disconnect",fd))
+    tcpClients[fd]=nil
 end
 
 function _P.onClientResponse(_,msg)
-    local reqDataLen,nextIndex=string.unpack("I",msg)
-    local toServiceId,session,isOk,respData=string.unpack(string.format("IIIc%d",reqDataLen),msg,nextIndex)
+    local respDataLen,nextIndex=string.unpack("I",msg)
+    local toServiceId,session,isOk,respData=string.unpack(string.format("IIIc%d",respDataLen),msg,nextIndex)
     respData=json.decode(respData)
     if isOk == 0 then
         api.response(toServiceId,session,false,table.unpack(respData))
@@ -67,61 +69,72 @@ function _P.onClientResponse(_,msg)
     end
 end
 
-function _P.onDispatch(source,session,toNodeId,toServiceName,fromServiceId,...)
-    local args={...}
-    local data=json.encode(args)
-    local dataLen=#data
-    local packData=string.pack(string.format("IzIIc%d",dataLen),dataLen,toServiceName,fromServiceId,session,data)
-
-    api.async(function()
-        local tcpClient=tcpClients[toNodeId]
-        if not tcpClient then
-            local response=http.get(string.format(SysArgs.url,toNodeId))
-            assert(response.status==200,"request failed!")
-
+api.dispatch(api.MsgType.Lua,function(source,session,cmd,toNodeId,toServiceName,fromServiceId,...)
+    if cmd == "listen" then
+        api.async(function()
+            if tcpServer then
+                api.response(source,session,false)
+                return
+            end
+    
+            local nodeId=api.env("node")
+            assert(nodeId,"invalid node env!")
+            assert(SysArgs.url,"invalid url!")
+            local url=string.format(SysArgs.url,nodeId)
+            local response=http.get(url)
+            assert(response.status==200,string.format("%s request failed!",url))
+    
             local data=json.decode(response.body)
             local host=data.host
             local port=data.port
-
-            tcpClient=tcp.newClient()
-            tcpClient.onMsgFunc=_P.onClientResponse
-
-            if not tcpClient:connect(host,port) then
-                api.error(string.format("connect node %d failed!",toNodeId))
-                return
+    
+            tcpServer=tcp.newServer()
+            tcpServer.onConnectFunc=_P.onConnect
+            tcpServer.onMsgFunc=_P.onMsg
+            tcpServer.onCloseFunc=_P.onClose
+    
+            assert(tcpServer:listen(port,host),string.format("listen %s:%d failed!",host,port))
+            api.info(string.format("cluster %s:%d start!",host,port))
+            api.response(source,session,true)
+        end)
+    else
+        local args={...}
+        local data=json.encode(args)
+        local dataLen=#data
+        local packData=string.pack(string.format("IzIIc%d",dataLen),dataLen,toServiceName,fromServiceId,session,data)
+    
+        api.async(function()
+            local tcpClient=tcpClients[toNodeId]
+            if not tcpClient then
+                local response=http.get(string.format(SysArgs.url,toNodeId))
+                assert(response.status==200,"request failed!")
+    
+                local data=json.decode(response.body)
+                local host=data.host
+                local port=data.port
+    
+                tcpClient=tcp.newClient()
+                tcpClient.onConnectFunc=function()
+                    api.info(string.format("node[%d] %s:%d connect",toNodeId,host,port))
+                    tcpClients[toNodeId]=tcpClient
+                    tcpClient:send(packData)
+                end
+                tcpClient.onConnectErrorFunc=function(_,err)
+                    api.error(err)
+                    api.response(fromServiceId,session,false)
+                end
+                tcpClient.onMsgFunc=_P.onClientResponse
+    
+                if not tcpClient:connect(host,port) then
+                    api.error(string.format("connect node %d failed!",toNodeId))
+                    api.response(fromServiceId,session,false)
+                    return
+                end
+            else
+                tcpClient:send(packData)
             end
-
-            tcpClients[toNodeId]=tcpClient
-
-            api.info(string.format("node[%d] %s:%d connect",toNodeId,host,port))
-        end
-
-        tcpClient:send(packData)
-    end)
-end
-
-api.async(function()
-    local nodeId=api.env("node")
-    assert(nodeId,"invalid node env!")
-
-    assert(SysArgs.url,"invalid url!")
-    local url=string.format(SysArgs.url,nodeId)
-    local response=http.get(url)
-    assert(response.status==200,string.format("%s request failed!",url))
-
-    local data=json.decode(response.body)
-    local host=data.host
-    local port=data.port
-
-    tcpServer=tcp.newServer()
-    tcpServer.onConnectFunc=_P.onConnect
-    tcpServer.onMsgFunc=_P.onMsg
-    tcpServer.onCloseFunc=_P.onClose
-
-    assert(tcpServer:listen(port,host),string.format("listen %s:%d failed!",host,port))
-    api.info(string.format("cluster %s:%d start!",host,port))
-
-    api.dispatch(api.MsgType.Lua,_P.onDispatch)
+        end)
+    end
 end)
 
 api.shutdown(function()

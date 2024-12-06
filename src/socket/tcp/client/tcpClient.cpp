@@ -67,6 +67,11 @@ void TcpClient::setOnConnectFunc(std::function<void()> func)
 	this->mOnConnectFunc = func;
 }
 
+void TcpClient::setOnConnectErrorFunc(std::function<void(const std::string)> func)
+{
+	this->mOnConnectErrorFunc = func;
+}
+
 void TcpClient::setOnCloseFunc(std::function<void()> func)
 {
 	this->mOnCloseFunc = func;
@@ -89,13 +94,18 @@ void TcpClient::onMsg(std::error_code ec, std::size_t length)
 	{
 		this->mOnMsgFunc(std::string(this->mData.data(), length));
 	}
+
+	this->doRead();
 }
 
 void TcpClient::onConnect(std::error_code ec, asio::ip::tcp::endpoint endpoint)
 {
 	if (ec)
 	{
-		spdlog::error("{}", ec.message());
+		if (this->mOnConnectErrorFunc)
+		{
+			this->mOnConnectErrorFunc(ec.message());
+		}
 		return;
 	}
 

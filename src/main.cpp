@@ -176,24 +176,17 @@ void printStackTrace(CONTEXT* context)
 	auto stackFrame = STACKFRAME64();
 	memset(&stackFrame, 0, sizeof(STACKFRAME64));
 
-#ifdef _M_IX86
-	stackFrame.AddrPC.Offset = context->Eip;
-	stackFrame.AddrPC.Mode = AddrModeFlat;
-	stackFrame.AddrFrame.Offset = context->EbP;
-	stackFrame.AddrFrame.Mode = AddrModeFlat;
-	stackFrame.AddrStack.Offset = context->Esp;
-	stackFrame.AddrStack.Mode = AddrModeFlat;
-#elif _M_X64
 	stackFrame.AddrPC.Offset = context->Rip;
 	stackFrame.AddrPC.Mode = AddrModeFlat;
 	stackFrame.AddrFrame.Offset = context->Rsp;
 	stackFrame.AddrFrame.Mode = AddrModeFlat;
 	stackFrame.AddrStack.Offset = context->Rbp;
 	stackFrame.AddrStack.Mode = AddrModeFlat;
-#endif
 
 	auto process = GetCurrentProcess();
 	SymInitialize(process, nullptr, true);
+
+	spdlog::error("Crash!");
 
 	while (StackWalk64(IMAGE_FILE_MACHINE_AMD64,process,GetCurrentThread(),&stackFrame,context, nullptr,SymFunctionTableAccess64,SymGetModuleBase64,nullptr))
 	{

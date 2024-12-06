@@ -46,8 +46,19 @@ int32_t connectTcpClient(lua_State* L)
 			{
 				auto msg = ServiceMsgPool::getInst()->pop();
 				msg->msgType = static_cast<uint32_t>(ServiceMsgType::TcpClient);
-				msg->status = static_cast<uint32_t>(TcpMsgType::Open);
+				msg->status = static_cast<uint32_t>(TcpMsgType::Connect);
 				msg->session = id;
+				ServiceMgr::getInst()->send(serviceId, msg);
+			});
+
+		tcpClient->setOnConnectErrorFunc([id, serviceId](const std::string error)
+			{
+				auto msg = ServiceMsgPool::getInst()->pop();
+				msg->msgType = static_cast<uint32_t>(ServiceMsgType::TcpClient);
+				msg->status = static_cast<uint32_t>(TcpMsgType::ConnectError);
+				msg->session = id;
+				msg->error = error;
+
 				ServiceMgr::getInst()->send(serviceId, msg);
 			});
 

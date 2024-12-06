@@ -1,16 +1,16 @@
 local api=require "api"
-local cluster=require "cluster"
-local SysArgs=api.args()
+local sysArgs=api.args()
 
-api.timer(500,function()
-    api.async(function()
-        local text="Hello World!"
-        api.info("Send:",text)
-        local isOk,response=cluster.call(1,"receiver",text)
-        if not isOk then
-            return
-        end
+api.async(function()
+    api.setEnv("node",sysArgs[1])
+    local clusterId=api.newService("cluster","clusterServ.lua",true,{url="http://127.0.0.1:6000/cluster?id=%s"})
+    if clusterId <= 0 then
+        api.error("clusterServ new failed!")
+        api.exit()
+    end
 
-        api.info("Receiver:",response)
-    end)
+    api.call(clusterId,"listen")
+
+    api.newService("clusterSender","clusterSenderServ.lua",true)
+    api.destroyService(SERVICE_ID)
 end)

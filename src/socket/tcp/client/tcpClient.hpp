@@ -24,6 +24,7 @@ public:
 
 public:
 	void setOnConnectFunc(std::function<void()> func);
+	void setOnConnectErrorFunc(std::function<void(const std::string)> func);
 	void setOnCloseFunc(std::function<void()> func);
 	void setOnMsgFunc(std::function<void(const std::string)> func);
 
@@ -35,6 +36,7 @@ private:
 private:
 	asio::ip::tcp::socket* mSocket = nullptr;
 	std::function<void()> mOnConnectFunc;
+	std::function<void(const std::string)> mOnConnectErrorFunc;
 	std::function<void()> mOnCloseFunc;
 	std::function<void(const std::string)> mOnMsgFunc;
 	std::array<char, TCP_PACK_SIZE> mData = { 0 };

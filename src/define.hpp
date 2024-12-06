@@ -4,9 +4,10 @@ constexpr size_t TCP_PACK_SIZE = 4096;
 
 enum class TcpMsgType
 {
-	Open = 1,
-	Close = 2,
-	Msg = 3,
+	Connect = 1,
+	ConnectError = 2,
+	Close = 3,
+	Msg = 4,
 };
 
 struct RemoteInfo

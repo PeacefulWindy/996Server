@@ -5,9 +5,10 @@ local Server=class("TcpServer")
 
 local TcpStatus=
 {
-    Open=1,
-    Close=2,
-    Msg=3,
+    Connect=1,
+    ConnectError=2,
+    Close=3,
+    Msg=4,
 }
 
 function Server:ctor()
@@ -72,6 +73,7 @@ function Client:ctor()
     self.onConnectFunc=nil
     self.onCloseFunc=nil
     self.onMsgFunc=nil
+    self.onConnectErrorFunc=nil
     api.tcpClients[self.ptr]=self
 end
 
@@ -96,10 +98,14 @@ function Client:close()
     tcpClient.close(self.ptr)
 end
 
-function Client:onMsg(status,msg)
-    if status == TcpStatus.Open then
+function Client:onMsg(status,msg,error)
+    if status == TcpStatus.Connect then
         if self.onConnectFunc then
             self.onConnectFunc(self)
+        end
+    elseif status == TcpStatus.ConnectError then
+        if self.onConnectErrorFunc then
+            self.onConnectErrorFunc(self,error)
         end
     elseif status == TcpStatus.Close then
         if self.onCloseFunc then

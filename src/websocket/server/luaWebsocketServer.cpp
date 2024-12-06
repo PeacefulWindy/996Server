@@ -108,8 +108,8 @@ int32_t sendWebsocketServer(lua_State* L)
 {
 	auto id = luaL_checkinteger(L, 1);
 	auto fd = luaL_checkinteger(L, 2);
-	auto data = luaL_checkstring(L, 3);
-	auto dataLen = luaL_len(L, 3);
+	auto dataLen = static_cast<size_t>(luaL_len(L, 3));
+	auto data = luaL_checklstring(L, 3, &dataLen);
 
 	auto websocketMgr = WebsocketServerMgr::getInst();
 	auto server=websocketMgr->getServer(id);
