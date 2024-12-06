@@ -283,10 +283,6 @@ function api.call(serviceId,...)
     return true,table.unpack(ret)
 end
 
-function api.quit()
-    core.exit()
-end
-
 function onPoll(msgs)
     for i=#api.nextCoro,1,-1 do
         local co=api.nextCoro[i]
