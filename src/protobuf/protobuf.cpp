@@ -382,7 +382,6 @@ int32_t encodeProto(lua_State* L)
 	auto msgTypeName = luaL_checkstring(L, 2);
 	if (!lua_istable(L, 3))
 	{
-		lua_pushboolean(L, false);
 		return 0;
 	}
 
@@ -390,16 +389,14 @@ int32_t encodeProto(lua_State* L)
 	if (!descriptor)
 	{
 		spdlog::error("proto message type not found:{}", msgTypeName);
-		lua_pushboolean(L, false);
-		return 1;
+		return 0;
 	}
 
 	auto protoType = ptr->factory->GetPrototype(descriptor);
 	if (!protoType)
 	{
 		spdlog::error("failed to create message protoType for:{}", msgTypeName);
-		lua_pushboolean(L, false);
-		return 1;
+		return 0;
 	}
 
 	auto msg = std::unique_ptr<google::protobuf::Message>(protoType->New());
@@ -409,13 +406,11 @@ int32_t encodeProto(lua_State* L)
 	if (!msg->SerializeToArray(data.data(), data.size()))
 	{
 		spdlog::error("proto encode failed!msgType:{}", msgTypeName);
-		lua_pushboolean(L, false);
-		return 1;
+		return 0;
 	}
-	lua_pushboolean(L,true);
 	lua_pushlstring(L, reinterpret_cast<const char*>(data.data()), data.size());
 
-	return 2;
+	return 1;
 }
 
 int32_t decodeProto(lua_State* L)
@@ -429,31 +424,27 @@ int32_t decodeProto(lua_State* L)
 	if (!descriptor)
 	{
 		spdlog::error("message type not found:{}", msgTypeName);
-		lua_pushboolean(L, false);
-		return 1;
+		return 0;
 	}
 
 	auto protoType = ptr->factory->GetPrototype(descriptor);
 	if (!protoType)
 	{
 		spdlog::error("failed to create message protoType for:{}", msgTypeName);
-		lua_pushboolean(L, false);
-		return 1;
+		return 0;
 	}
 
 	auto msg = std::unique_ptr<google::protobuf::Message>(protoType->New());
 	if (!msg->ParseFromArray(data, dataLen))
 	{
 		spdlog::error("parse message failed!protoType:{}", msgTypeName);
-		lua_pushboolean(L, false);
-		return 1;
+		return 0;
 	}
 
-	lua_pushboolean(L, true);
 	lua_newtable(L);
 	foreachToTable(L, ptr, msg.get());
 
-	return 2;
+	return 1;
 }
 
 void luaRegisterProtobufAPI(lua_State* state)
