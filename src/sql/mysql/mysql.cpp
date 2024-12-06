@@ -187,44 +187,32 @@ int32_t execMariadb(lua_State* L)
 		return 1;
 	}
 
-	auto params = std::vector<MYSQL_BIND>();
-	params.reserve(argNum);
-	auto intParams = std::vector<int64_t>();
-	auto boolParams = std::vector<bool>();
-	auto doubleParams = std::vector<double>();
-	auto stringParams = std::vector<std::string>();
-	auto isNullParams = std::vector<my_bool>();
+	auto params = std::vector<MYSQL_BIND>(argNum);
+	auto valueParams = std::vector<std::vector<uint8_t>>(argNum);
+	auto isNullParams = std::vector<my_bool>(argNum);
 
 	for (auto i = 0; i < argNum; i++)
 	{
 		auto index = i + 2;
 		auto type = lua_type(L, index);
-		auto param = MYSQL_BIND();
-		isNullParams.emplace_back(false);
-		param.is_null=&isNullParams.back();
+		auto& param = params[i];
+		auto& valueParam = valueParams[i];
+		param.is_null = &isNullParams[i];
 
+		auto value = std::string();
 		switch (type)
 		{
 		case LUA_TSTRING:
-			stringParams.emplace_back(lua_tostring(L, index));
-			param.buffer_type = MYSQL_TYPE_STRING;
-			param.buffer = (void*)stringParams.back().c_str();
-			param.buffer_length = sizeof(char) * stringParams.back().length();
+			value = lua_tostring(L, index);
 			break;
 		case LUA_TNUMBER:
 			if (lua_isinteger(L, index))
 			{
-				intParams.emplace_back(lua_tointeger(L, index));
-				param.buffer_type = MYSQL_TYPE_LONG;
-				param.buffer_length = sizeof(int64_t);
-				param.buffer = &intParams.back();
+				value = std::to_string(lua_tointeger(L, index));
 			}
 			else
 			{
-				doubleParams.emplace_back(lua_tonumber(L, index));
-				param.buffer_type = MYSQL_TYPE_DOUBLE;
-				param.buffer_length = sizeof(double);
-				param.buffer = &doubleParams.back();
+				value = std::to_string(lua_tonumber(L, index));
 			}
 			break;
 		default:
@@ -232,7 +220,11 @@ int32_t execMariadb(lua_State* L)
 			continue;
 		}
 
-		params.emplace_back(param);
+		auto len = value.length();
+		param.buffer_length = len;
+		valueParam.resize(len + 1);
+		memcpy(valueParam.data(), value.c_str(), len);
+		param.buffer = valueParam.data();
 	}
 
 	if (mysql_stmt_bind_param(stmt, params.data()))
@@ -291,7 +283,7 @@ int32_t execMariadb(lua_State* L)
 		auto len = field.length;
 		value.resize(static_cast<size_t>(len) + 1);
 		it.buffer_length = len;
-		it.buffer = (void*)value.data();
+		it.buffer = value.data();
 		it.is_null = &isNullResults[i];
 	}
 
