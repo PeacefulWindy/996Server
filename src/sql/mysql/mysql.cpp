@@ -203,6 +203,7 @@ int32_t execMariadb(lua_State* L)
 		switch (type)
 		{
 		case LUA_TSTRING:
+			param.buffer_type = MYSQL_TYPE_STRING;
 			value = lua_tostring(L, index);
 			break;
 		case LUA_TNUMBER:
