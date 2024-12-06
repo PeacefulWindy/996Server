@@ -46,7 +46,7 @@ bool WebsocketServer::send(uint64_t fd, std::string data)
 		return false;
 	}
 
-	auto sendInfo=iter->second->send(data, true);
+	auto sendInfo = iter->second->send(data);
 
 	this->mLock.unlock();
 
