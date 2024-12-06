@@ -1,5 +1,5 @@
 local class=require "class"
-local _M=class()
+local _M=class("redis")
 
 ---@param host string
 ---@param port string
