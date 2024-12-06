@@ -11,7 +11,7 @@ function _M.send(nodeId,serviceName,...)
     end
     assert(clusterId > 0,"not found cluster service!")
 
-    api.send(clusterId,nodeId,"send",serviceName,SERVICE_ID,...)
+    api.send(clusterId,"send",nodeId,serviceName,SERVICE_ID,...)
 end
 
 ---@param nodeId integer
