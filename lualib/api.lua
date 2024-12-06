@@ -291,8 +291,6 @@ end
 function api.xpcall(func,...)
 	return api.luaXpcall(func,_P.onXpCallError,...)
 end
-api.luaXpcall=xpcall
-xpcall=api.pcall
 
 function onPoll(msgs)
     for i=#api.nextCoro,1,-1 do
