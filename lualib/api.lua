@@ -283,6 +283,17 @@ function api.call(serviceId,...)
     return true,table.unpack(ret)
 end
 
+function _P.onXpCallError(err)
+	api.error(err)
+	api.error(debug.traceback())
+end
+
+function api.xpcall(func,...)
+	return api.luaXpcall(func,_P.onXpCallError,...)
+end
+api.luaXpcall=xpcall
+xpcall=api.pcall
+
 function onPoll(msgs)
     for i=#api.nextCoro,1,-1 do
         local co=api.nextCoro[i]
