@@ -32,7 +32,7 @@ bool WebsocketServer::listen(uint16_t port, std::string host, int32_t maxConnect
 	return true;
 }
 
-void WebsocketServer::send(uint64_t fd, std::string data)
+bool WebsocketServer::send(uint64_t fd, std::string data)
 {
 	while (!this->mLock.try_lock())
 	{
@@ -43,12 +43,19 @@ void WebsocketServer::send(uint64_t fd, std::string data)
 	if (iter == this->mSessions.end())
 	{
 		this->mLock.unlock();
-		return;
+		return false;
 	}
 
-	iter->second->send(data, true);
+	auto sendInfo=iter->second->send(data, true);
 
 	this->mLock.unlock();
+
+	if (!sendInfo.success)
+	{
+		return false;
+	}
+
+	return true;
 }
 
 void WebsocketServer::close()

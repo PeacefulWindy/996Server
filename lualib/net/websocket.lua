@@ -28,12 +28,13 @@ end
 
 ---@param fd integer
 ---@param data string
+---@return boolean
 function Server:send(fd,data)
     if #data == 0 then
         return
     end
 
-    websocketServer.send(self.ptr,fd,data)
+    return websocketServer.send(self.ptr,fd,data)
 end
 
 ---@param fd integer

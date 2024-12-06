@@ -115,12 +115,14 @@ int32_t sendWebsocketServer(lua_State* L)
 	auto server=websocketMgr->getServer(id);
 	if (!server)
 	{
-		return 0;
+		lua_pushboolean(L, false);
+		return 1;
 	}
 
-	server->send(fd, std::string(data, dataLen));
+	auto ret=server->send(fd, std::string(data, dataLen));
+	lua_pushboolean(L, ret);
 
-	return 0;
+	return 1;
 }
 
 int32_t closeWebsocketServer(lua_State* L)

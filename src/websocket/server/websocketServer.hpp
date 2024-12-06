@@ -21,7 +21,7 @@ public:
 	bool listen(uint16_t port, std::string host= WebsocketDefaultHost, int32_t maxConnection = WebsocketMaxConnection);
 
 public:
-	void send(uint64_t fd, std::string data);
+	bool send(uint64_t fd, std::string data);
 
 public:
 	void close();
