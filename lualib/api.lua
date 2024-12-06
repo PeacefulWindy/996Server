@@ -289,7 +289,7 @@ function _P.onXpCallError(err)
 end
 
 function api.xpcall(func,...)
-	return api.luaXpcall(func,_P.onXpCallError,...)
+	return xpcall(func,_P.onXpCallError,...)
 end
 
 function onPoll(msgs)
