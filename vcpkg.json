@@ -12,6 +12,7 @@
     "ixwebsocket",
     "asio",
     "hiredis",
-    "stduuid"
+    "stduuid",
+    "icu"
   ]
 }

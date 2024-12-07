@@ -1,6 +1,7 @@
 #include "tcpClient.hpp"
 #include <spdlog/spdlog.h>
 #include<socket/tcp/session/tcpSession.hpp>
+#include<encode/encode.hpp>
 
 extern asio::io_context IoContext;
 
@@ -33,7 +34,15 @@ bool TcpClient::connect(std::string host,int32_t port)
 	auto resolve = resolver.resolve(endPoint, ec);
 	if (ec)
 	{
-		spdlog::error("{}", ec.message());
+		auto error = ec.message();
+#ifdef _WIN32
+		auto ret = changeEncode(error, EncodeType::System, EncodeType::UTF8);
+		if (ret.first)
+		{
+			error = ret.second;
+		}
+#endif
+		spdlog::error("{}", error);
 		return false;
 	}
 
@@ -104,7 +113,15 @@ void TcpClient::onConnect(std::error_code ec, asio::ip::tcp::endpoint endpoint)
 	{
 		if (this->mOnConnectErrorFunc)
 		{
-			this->mOnConnectErrorFunc(ec.message());
+			auto error = ec.message();
+#ifdef _WIN32
+			auto ret = changeEncode(error, EncodeType::System, EncodeType::UTF8);
+			if (ret.first)
+			{
+				error = ret.second;
+			}
+#endif
+			this->mOnConnectErrorFunc(error);
 		}
 		return;
 	}

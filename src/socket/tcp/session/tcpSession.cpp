@@ -40,7 +40,6 @@ void TcpSession::onMsg(std::error_code ec, std::size_t length)
 {
 	if (ec)
 	{
-		/*this->close();*/
 		return;
 	}
 
