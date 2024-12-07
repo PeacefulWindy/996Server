@@ -172,15 +172,10 @@ function _M:hgetall(key)
     local ret=redis.cmd(self.ptr,cmd)
 
     local tb={}
-    for i=1,#ret,4 do
-        local key=ret[i+1]
-        local value=ret[i+3]
-        local numberValue=tonumber(value)
-        if numberValue then
-            tb[key]=numberValue
-        else
-            tb[key]=value
-        end
+    for i=1,#ret,2 do
+        local key=ret[i]
+        local value=ret[i+1]
+        tb[key]=value
     end
 
     return tb
