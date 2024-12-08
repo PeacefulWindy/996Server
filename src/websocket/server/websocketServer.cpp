@@ -150,6 +150,11 @@ void WebsocketServer::onServerMsg(std::shared_ptr<ix::ConnectionState> connectio
 			return;
 		}
 
+		if (this->mOnCloseFunc)
+		{
+			this->mOnCloseFunc(iter->second);
+		}
+
 		auto iter2 = this->mSessions.find(iter->second);
 		if (iter2 != this->mSessions.end())
 		{
