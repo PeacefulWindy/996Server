@@ -2,6 +2,7 @@
 #include<worker/workerMgr.hpp>
 #include<spdlog/spdlog.h>
 #include<worker/worker.hpp>
+#include<service/msg/serviceMsgPool.hpp>
 
 ServiceMgr* ServiceMgr::mInst = nullptr;
 
@@ -131,6 +132,7 @@ void ServiceMgr::destoryService(int32_t id)
 		worker->setService(nullptr);
 	}
 
+	iter->second->close();
 	this->mServices.erase(iter);
 
 	while (!this->mPreDestroyServiceLock.try_lock())
@@ -143,7 +145,7 @@ void ServiceMgr::destoryService(int32_t id)
 	this->mPreDestroyServiceLock.unlock();
 }
 
-void ServiceMgr::closeAllService()
+void ServiceMgr::waitAllServiceClose()
 {
 	while (!this->mServiceLock.try_lock())
 	{
@@ -158,9 +160,17 @@ void ServiceMgr::closeAllService()
 
 	this->mServiceLock.unlock();
 
+	auto serviceMgr = ServiceMsgPool::getInst();
 	for (auto it = ids.begin(); it != ids.end(); ++it)
 	{
-		this->destoryService(*it);
+		auto msg=serviceMgr->pop();
+		msg->msgType = static_cast<uint32_t>(ServiceMsgType::Close);
+		this->send(*it, msg);
+	}
+
+	while (!this->mServices.empty())
+	{
+		std::this_thread::sleep_for(std::chrono::milliseconds(10));
 	}
 }
 

@@ -90,8 +90,9 @@ function Client:connect(host,port)
 end
 
 ---@param data string
+---@return boolean
 function Client:send(data)
-    tcpClient.send(self.ptr,data,#data)
+    return tcpClient.send(self.ptr,data,#data)
 end
 
 function Client:close()

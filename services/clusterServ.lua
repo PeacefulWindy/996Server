@@ -18,6 +18,7 @@ function _P.sendResponse(fd,toServId,session,isOk,msg)
     else
         isOk=0
     end
+
     local dataLen=#msg
     local respPackData=string.pack(string.format("IIIIc%d",dataLen),dataLen,toServId,session,isOk,msg)
     if not tcpServer:send(fd,respPackData) then
@@ -55,7 +56,6 @@ end
 
 function _P.onClose(_,fd)
     api.info(string.format("fd:%d disconnect",fd))
-    tcpClients[fd]=nil
 end
 
 function _P.onClientResponse(_,msg)
@@ -105,33 +105,42 @@ api.dispatch(api.MsgType.Lua,function(source,session,cmd,toNodeId,toServiceName,
     
         api.async(function()
             local tcpClient=tcpClients[toNodeId]
-            if not tcpClient then
-                local response=http.get(string.format(SysArgs.url,toNodeId))
-                assert(response.status==200,"request failed!")
-    
-                local data=json.decode(response.body)
-                local host=data.host
-                local port=data.port
-    
-                tcpClient=tcp.newClient()
-                tcpClient.onConnectFunc=function()
-                    api.info(string.format("node[%d] %s:%d connect",toNodeId,host,port))
-                    tcpClients[toNodeId]=tcpClient
-                    tcpClient:send(packData)
-                end
-                tcpClient.onConnectErrorFunc=function(_,err)
-                    api.error(err)
-                    api.response(fromServiceId,session,false)
-                end
-                tcpClient.onMsgFunc=_P.onClientResponse
-    
-                if not tcpClient:connect(host,port) then
-                    api.error(string.format("connect node %d failed!",toNodeId))
-                    api.response(fromServiceId,session,false)
+            if tcpClient then
+                if tcpClient:send(packData) then
                     return
                 end
-            else
+
+                tcpClient:destroy()
+                tcpClients[toNodeId]=nil
+            end
+
+            local response=http.get(string.format(SysArgs.url,toNodeId))
+            assert(response.status==200,"request failed!")
+
+            local data=json.decode(response.body)
+            local host=data.host
+            local port=data.port
+
+            tcpClient=tcp.newClient()
+            tcpClient.onConnectFunc=function()
+                tcpClients[toNodeId]=tcpClient
+                api.info(string.format("node[%d] %s:%d connect",toNodeId,host,port))
                 tcpClient:send(packData)
+            end
+            tcpClient.onConnectErrorFunc=function(_,err)
+                api.error(err)
+                api.response(fromServiceId,session,false)
+            end
+            tcpClient.onCloseFunc=function()
+                tcpClient:destroy()
+                tcpClients[toNodeId]=nil
+            end
+            tcpClient.onMsgFunc=_P.onClientResponse
+
+            if not tcpClient:connect(host,port) then
+                api.error(string.format("connect node %d failed!",toNodeId))
+                api.response(fromServiceId,session,false)
+                return
             end
         end)
     end

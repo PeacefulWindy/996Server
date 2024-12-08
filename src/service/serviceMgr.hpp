@@ -18,7 +18,7 @@ public:
 	Service* getService(int32_t id);
 	int32_t queryService(std::string name);
 	void destoryService(int32_t id);
-	void closeAllService();
+	void waitAllServiceClose();
 	
 public:
 	std::vector<std::string>& getServicePath();

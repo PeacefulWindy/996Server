@@ -62,8 +62,6 @@ Service::~Service()
 		lua_close(this->mState);
 		this->mState = nullptr;
 	}
-
-	spdlog::info("service_{}:{} stop.", this->mId, this->mName);
 }
 
 void Service::close()
@@ -81,6 +79,8 @@ void Service::close()
 	this->mIsInit = false;
 
 	this->mMsgLock.unlock();
+
+	spdlog::info("service_{}:{} stop.", this->mId, this->mName);
 }
 
 const std::string Service::getName() const

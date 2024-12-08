@@ -330,7 +330,7 @@ int main(int arg,char * argv[])
 		std::this_thread::sleep_for(std::chrono::milliseconds(10));
 	}
 
-	serviceMgr->closeAllService();
+	serviceMgr->waitAllServiceClose();
 
 	WorkerMgr::destroy();
 	ServiceMgr::destroy();

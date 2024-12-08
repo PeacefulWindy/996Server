@@ -20,7 +20,7 @@ public:
 	void close();
 
 public:
-	void send(std::string data);
+	bool send(std::string data);
 
 public:
 	void setOnConnectFunc(std::function<void()> func);

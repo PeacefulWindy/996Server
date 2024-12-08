@@ -118,12 +118,14 @@ int32_t sendTcpClient(lua_State* L)
 	auto tcpClient = tcpClientMgr->getClient(id);
 	if (!tcpClient)
 	{
-		return 0;
+		lua_pushboolean(L, false);
+		return 1;
 	}
 
-	tcpClient->send(std::string(data, dataLen));
+	auto ret = tcpClient->send(std::string(data, dataLen));
+	lua_pushboolean(L, ret);
 
-	return 0;
+	return 1;
 }
 
 void luaRegisterTcpClientAPI(lua_State* state)

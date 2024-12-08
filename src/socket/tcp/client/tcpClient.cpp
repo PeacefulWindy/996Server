@@ -59,16 +59,28 @@ void TcpClient::close()
 	}
 
 	this->mSocket->close();
+	
+	if (this->mOnCloseFunc)
+	{
+		this->mOnCloseFunc();
+	}
 }
 
-void TcpClient::send(std::string data)
+bool TcpClient::send(std::string data)
 {
 	if (!this->mSocket->is_open())
 	{
-		return;
+		return false;
 	}
 
-	this->mSocket->write_some(asio::buffer(data));
+	auto ec = std::error_code();
+	this->mSocket->write_some(asio::buffer(data), ec);
+	if (ec)
+	{
+		return false;
+	}
+
+	return true;
 }
 
 void TcpClient::setOnConnectFunc(std::function<void()> func)
