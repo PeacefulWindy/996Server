@@ -1,0 +1,12 @@
+Config=
+{
+    luaPath="lualib/?.lua;./?.lua",
+    cPath="libs/?.so;libs/?.dll",
+    start="example/consoleBoot.lua",
+    thread=2,
+    servicePath=
+    {
+        "services"
+    },
+    args={},
+}
