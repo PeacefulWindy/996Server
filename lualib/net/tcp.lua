@@ -47,7 +47,7 @@ function Server:getRemoteInfo(fd)
 end
 
 function Server:onMsg(fd,status,msg)
-    if status == TcpStatus.Open then
+    if status == TcpStatus.Connect then
         if self.onConnectFunc then
             self.onConnectFunc(self,fd)
         end

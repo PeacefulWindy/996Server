@@ -332,7 +332,7 @@ std::string getEncodeString(EncodeType code)
 		return "utf-32";
 	case EncodeType::UTF32BE:
 		break;
-	default:
-		return getSystemCodePage();
 	}
+
+	return getSystemCodePage();
 }
