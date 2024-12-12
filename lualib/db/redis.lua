@@ -17,7 +17,7 @@ end
 ---@return boolean
 function _M:exists(key)
     local cmd=string.format("exists %s",key)
-    local isOk,ret=redis.cmd(self.ptr,cmd)
+    local ret=redis.cmd(self.ptr,cmd)
     if not ret or ret[1] ~= 1 then
         return false
     end
