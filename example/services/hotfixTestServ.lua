@@ -1,5 +1,5 @@
 local hotfix=require "hotfix"
-local hotfixMod=require "hotfixMod"
+local hotfixMod=hotfix.require "hotfixMod"
 local api=require "api"
 
 function printModValue()
