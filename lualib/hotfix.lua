@@ -124,7 +124,4 @@ function _M.reload()
     return true
 end
 
-_M.nativeRequire=require
-require=_M.require
-
 return _M 
