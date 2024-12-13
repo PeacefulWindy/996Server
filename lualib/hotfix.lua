@@ -109,6 +109,13 @@ function _M.reload()
                     mod[k]=ret[k]
                 end
             end
+
+            if mod.onReload then
+                local isOk=pcall(mod.onReload)
+                if not isOk then
+                    return false
+                end
+            end
         end
     end
 
