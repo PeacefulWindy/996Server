@@ -67,7 +67,13 @@ function _M.require(path)
                     return
                 end
 
-                local mod=ret
+                for _,it in pairs(ret)do
+                    if type(it) ~= "table" then
+                        api.warn("only support hotfix table!")
+                    end
+                end
+
+                local mod=ret[1]
                 setmetatable(proxyMod,
                 {
                     __index=mod,
@@ -76,7 +82,7 @@ function _M.require(path)
 
                 _P.mods[path]=
                 {
-                    mod=mod,
+                    mods=ret,
                     filePath=it,
                 }
 
@@ -105,15 +111,20 @@ function _M.reload()
                 return false
             end
 
-            local mod=modInfo.mod
-            for k,v in pairs(mod)do
-                if ret[k] then
-                    mod[k]=ret[k]
+            for index,mod in pairs(modInfo.mods)do
+                local newMod=ret[index]
+                if newMod and type(newMod) == "table" then
+                    for k,v in pairs(mod)do
+                        if k ~= "onReload" and newMod[k] then
+                            mod[k]=newMod[k]
+                        end
+                    end
                 end
             end
 
-            if mod.onReload then
-                local isOk=pcall(mod.onReload)
+            local mod=modInfo.mods[1]
+            if mod and mod.onReload then
+                local isOk=api.xpcall(mod.onReload)
                 if not isOk then
                     return false
                 end

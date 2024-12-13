@@ -33,4 +33,4 @@ function getValue()
     return 5+hotfixFlag
 end
 
-return _M
+return {_M,_P}
