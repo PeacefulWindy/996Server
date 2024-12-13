@@ -17,4 +17,12 @@ function _M.mkdir(path)end
 ---@return boolean,string
 function _M.rmdir(path)end
 
+---@param path string
+---@return string
+function _M.getFileName(path)end
+
+---@param path string
+---@return string
+function _M.getFileExtension(path)end
+
 return _M

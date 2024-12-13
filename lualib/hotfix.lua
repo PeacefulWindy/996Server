@@ -5,10 +5,10 @@ local _P=
     mods={},
 }
 
-function _P.getLuaPaths(fileName)
+function _P.getLuaPaths(filePath)
     local tb=api.split(package.path,";")
     for k,v in pairs(tb)do
-        local filePath=string.gsub(v,"%?",fileName)
+        local filePath=string.gsub(v,"%?",filePath)
         tb[k]=filePath
     end
 
@@ -17,9 +17,11 @@ end
 
 function _M.require(path)
     local filePath=string.gsub(path,"%.","/")
-    local fileName=fs.getFileName(filePath)
+    local ext=fs.getFileExtension(filePath)
+    filePath=filePath:gsub(ext,"")
+
     if not package.loaded[path] then
-        local luaPaths=_P.getLuaPaths(fileName)
+        local luaPaths=_P.getLuaPaths(filePath)
         for _,it in pairs(luaPaths)do
             local fileFunc=loadfile(it)
             if fileFunc then
@@ -82,7 +84,7 @@ function _M.require(path)
             end
         end
 
-        api.error(string.format("not found %s\n\t%s",path,table.concat(_P.getLuaPaths(fileName),"\n\t")))
+        api.error(string.format("not found %s\n\t%s",path,table.concat(luaPaths,"\n\t")))
     end
 
     return package.loaded[path]
