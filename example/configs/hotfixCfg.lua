@@ -1,0 +1,13 @@
+Config=
+{
+    luaPath="lualib/?.lua;./?.lua;example/?.lua",
+    cPath="libs/?.so;libs/?.dll",
+    start="example/hotfixBoot.lua",
+    thread=3,
+    servicePath=
+    {
+        "example/services",
+        "services"
+    },
+    args={},
+}

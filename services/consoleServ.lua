@@ -56,13 +56,15 @@ tcpServer.onMsgFunc=function(_,fd,msg)
         return
     end
 
-    local isOk,ret=api.call(serviceId,table.unpack(cmds))
-    if not isOk then
-        tcpServer:send(fd,"command error!")
-        return
-    end
-
-    tcpServer:send(fd,"command ok!")
+    api.async(function()
+        local isOk,ret=api.call(serviceId,table.unpack(cmds))
+        if not isOk then
+            tcpServer:send(fd,"command error!")
+            return
+        end
+    
+        tcpServer:send(fd,"command ok!")
+    end)
 end
 
 local tcpClient=tcp.newClient()
@@ -81,9 +83,8 @@ function _P.loopEvent()
             end
             tcpClient:send(table.concat(cmds,""))
             cmds={}
-        elseif ch == "\b" then
+        elseif ch == 8 then
             table.remove(cmds,#cmds)
-            core.print("\b")
         else
             table.insert(cmds,ch)
         end

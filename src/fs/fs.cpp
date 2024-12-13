@@ -83,6 +83,24 @@ int32_t rmdir(lua_State* L)
 	return 1;
 }
 
+int getFileName(lua_State* L)
+{
+	auto filePath = luaL_checkstring(L, 1);
+	auto path = std::filesystem::u8path(filePath);
+	auto fileName = path.stem().string();
+	lua_pushstring(L, fileName.c_str());
+	return 1;
+}
+
+int getFileExtension(lua_State* L)
+{
+	auto filePath = luaL_checkstring(L, 1);
+	auto path = std::filesystem::u8path(filePath);
+	auto ext = path.extension().string();
+	lua_pushstring(L, ext.c_str());
+	return 1;
+}
+
 void luaRegisterFsAPI(lua_State* state)
 {
 	lua_settop(state, 0);
@@ -100,6 +118,12 @@ void luaRegisterFsAPI(lua_State* state)
 
 	lua_pushcfunction(state, rmdir);
 	lua_setfield(state, -2, "rmdir");
+
+	lua_pushcfunction(state, getFileName);
+	lua_setfield(state, -2, "getFileName");
+
+	lua_pushcfunction(state, getFileExtension);
+	lua_setfield(state, -2, "getFileExtension");
 
 	lua_setglobal(state, "fs");
 }
