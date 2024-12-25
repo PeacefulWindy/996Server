@@ -11,7 +11,15 @@ return function(name,super)
 
     clazz.new=function(...)
         local inst={}
-        setmetatable(inst,{__index=clazz})
+        setmetatable(inst,
+        {
+            __index=clazz,
+            __gc=function()
+                if clazz.onDestroy then
+                    clazz.onDestroy(inst)
+                end
+            end
+        })
 
         if clazz.ctor then
             clazz.ctor(inst,...)
