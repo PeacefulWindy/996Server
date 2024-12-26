@@ -6,6 +6,7 @@
     "cjson",
     "fmt",
     "spdlog",
+    "libxml2",
     "libmariadb",
     "cryptopp",
     "protobuf",
