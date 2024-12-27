@@ -7,7 +7,7 @@ cd ..
 rd /s /q build
 md build
 cd build
-cmake .. -DCMAKE_TOOLCHAIN_FILE=../vcpkg/scripts/buildsystems/vcpkg.cmake
+cmake ..
 cmake --build .
 cd ..
 xcopy Debug\* . /Y
