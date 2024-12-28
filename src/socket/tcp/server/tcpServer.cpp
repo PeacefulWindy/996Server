@@ -23,7 +23,13 @@ bool TcpServer::listen(int32_t port, std::string host)
 	}
 
 	auto endpoint = asio::ip::tcp::endpoint(asio::ip::make_address(host), port);
-	this->mAcceptor = new asio::ip::tcp::acceptor(IoContext, endpoint);
+	this->mAcceptor = new asio::ip::tcp::acceptor(IoContext);
+	this->mAcceptor->open(endpoint.protocol());
+#ifndef _WIN32
+	this->mAcceptor->set_option(asio::ip::tcp::acceptor::reuse_address(true));
+#endif
+	this->mAcceptor->bind(endpoint);
+	this->mAcceptor->listen();
 	this->doAcceptor();
 	return true;
 }

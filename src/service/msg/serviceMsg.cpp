@@ -1,4 +1,5 @@
 #include "serviceMsg.hpp"
+#include<memory>
 #include<cstring>
 
 void ServiceMsg::reset()

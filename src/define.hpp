@@ -1,4 +1,5 @@
 #pragma once
+#include<string>
 
 constexpr size_t TCP_PACK_SIZE = 4096;
 
