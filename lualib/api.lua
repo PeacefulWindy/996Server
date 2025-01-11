@@ -77,7 +77,7 @@ function api.copyTable(tb)
 
     for k,v in pairs(tb)do
         if type(v) == "table" then
-            ret[k]=_M.copyTable(v)
+            ret[k]=api.copyTable(v)
         else
             ret[k]=v
         end
