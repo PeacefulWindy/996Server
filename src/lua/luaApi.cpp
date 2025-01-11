@@ -9,6 +9,11 @@
 #include<thread>
 #ifdef _WIN32
 #include <conio.h>
+#else
+#include <termio.h>
+#define TTY_PATH "/dev/tty"
+#define STTY_US "stty raw -echo -F"
+#define STTY_DEF "stty -raw echo -F"
 #endif
 
 extern asio::io_context IoContext;
@@ -57,19 +62,18 @@ int luaGetChar(lua_State* L)
 		return 1;
 	}
 #else
-//not test
-	auto rfds = fd_set();
-	auto tv = timeval();
-	system(STTY_US TTY_PATH);
-	FD_ZERO(&rfds);
-	FD_SET(0, &rfds);
-	tv.tv_sec = 0;
-	tv.tv_usec = 10;
-	if (select(1, &rfds, NULL, NULL, &tv) > 0)
-	{
-		lua_pushinteger(L, getchar());
+    auto rfds=fd_set();
+    auto tv=timeval();
+    system(STTY_US TTY_PATH);
+    FD_ZERO(&rfds);
+    FD_SET(0, &rfds);
+    tv.tv_sec = 0;
+    tv.tv_usec = 10;
+    if (select(1, &rfds, nullptr, nullptr, &tv) > 0)
+    {
+        lua_pushinteger(L,getchar());
 		return 1;
-	}
+    }
 #endif
 	return 0;
 }

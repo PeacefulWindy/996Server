@@ -1,4 +1,7 @@
-sudo apt install git cmake
+sudo apt install git cmake -y
+#icu require
+sudo apt-get install autoconf automake autoconf-archive -y
+
 git submodule init
 git submodule update
 cd vcpkg

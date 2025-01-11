@@ -327,7 +327,7 @@ int main(int arg,char * argv[])
 	{
 		IoContext.poll();
 		serviceMgr->poll();
-		std::this_thread::sleep_for(std::chrono::milliseconds(10));
+		std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 	}
 
 	serviceMgr->waitAllServiceClose();
