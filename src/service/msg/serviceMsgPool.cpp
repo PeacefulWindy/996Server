@@ -47,9 +47,16 @@ std::shared_ptr<ServiceMsg> ServiceMsgPool::pop()
 		std::this_thread::sleep_for(std::chrono::milliseconds(10));
 	}
 
-	auto ptr = this->mPool.front();
-	this->mPool.pop();
-	this->mLock.unlock();
+	std::shared_ptr<ServiceMsg> ptr;
+	if (this->mPool.empty())
+	{
+		ptr = std::make_shared<ServiceMsg>();
+	}
+	else
+	{
+		ptr = this->mPool.front();
+		this->mPool.pop();
+	}
 
 	return ptr;
 }
